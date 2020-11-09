@@ -12,6 +12,7 @@ import http_procession
 import json
 
 def t_application(start_response):
+
     parameters_string = make_parameters_string_from_json()
     environ = dict()
     environ['REQUEST_METHOD'] = 'POST'

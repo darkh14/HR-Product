@@ -1,0 +1,37 @@
+<Structure xmlns="http://v8.1c.ru/8.1/data/core" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Property name="RequestType">
+		<Value xsi:type="xs:string">get_fitting_cvs</Value>
+	</Property>
+	<Property name="MongoConnectionString">
+		<Value xsi:type="xs:string">mongodb://Admin:123@34.74.148.6:27017/Admin?authSource=admin</Value>
+	</Property>
+	<Property name="AgeBegin">
+		<Value xsi:type="xs:decimal">0</Value>
+	</Property>
+	<Property name="AgeEnd">
+		<Value xsi:type="xs:decimal">0</Value>
+	</Property>
+	<Property name="Sex">
+		<Value xsi:type="xs:string"/>
+	</Property>
+	<Property name="WorkExperienceBegin">
+		<Value xsi:type="xs:decimal">3</Value>
+	</Property>
+	<Property name="WorkExperienceEnd">
+		<Value xsi:type="xs:decimal">6</Value>
+	</Property>
+	<Property name="Education">
+		<Value xsi:type="xs:string">Высшее образование</Value>
+	</Property>
+	<Property name="Requirements">
+		<Value xsi:type="xs:string">Рассматриваются кандидаты только с опытом управления бухгалтерским и управленческим  учетом.</Value>
+	</Property>
+	<Property name="Duties">
+		<Value xsi:type="xs:string">Готовить учетную политику в области бухгалтерского учета, налогообложения контролировать соблюдение учетной политики.
+Обеспечивать правильную и рациональную организацию бухгалтерского, налогового учета, финансов, соблюдать установленные правила ведения учета.
+Внедрять передовые формы и методы учета.
+Обеспечивать правильный и своевременный учет активов и обязательств, прав.
+Организовывать достоверный и своевременный учет издержек производства и обращения, продукции, реализации, составление отчетных калькуляций себестоимости продукции.
+Обеспечивать своевременный и точный учет результатов финансово - хозяйственной деятельности, правильный учет и осуществление всех финансовых, кредитных и расчетных операций.</Value>
+	</Property>
+</Structure>

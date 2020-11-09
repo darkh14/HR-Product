@@ -38,12 +38,11 @@ def make_parameters_string_from_json():
     parameters_string = p_file.read()
     return parameters_string
 
-
 def t_start_response(status, headers):
     pass
 
-
 if __name__ == '__main__':
+
     output = t_application(t_start_response)
 
 

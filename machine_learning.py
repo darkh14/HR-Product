@@ -19,7 +19,7 @@ class MLProcessor(MongoDBConnector):
                               'skills': {'type': 'array'},
                               'education': {'type': 'array_dict',
                                     'fields': ['final', 'name', 'organization']}}
-        self._cv_vacancy_labels_fields = ['cv_id', 'vacancy_id', 'fits', 'active']
+        self._cv_vacancy_labels_fields = ['cv_id', 'vacancy_id', 'manager', 'DB', 'fits', 'active']
         self._filter_parameters_names = ['AgeBegin', 'AgeEnd', 'Gender', 'WorkExperienceBegin',
                                          'WorkExperienceEnd', 'Education', 'Requirements', 'Duties']
         self._filter_is_set = False

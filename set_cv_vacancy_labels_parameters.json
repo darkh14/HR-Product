@@ -1,0 +1,12 @@
+{
+"RequestType": "set_cv_vacancy_labels",
+"MongoConnectionString": "mongodb://Admin:123@34.74.148.6:27017/Admin?authSource=admin",
+"cv_vacancy_labels": [
+{
+"cv_id": "70e79da60005861a760039ed1f51577a573338",
+"vacancy_id": "725e4fda04b111eb99b3fa163e8eff0e",
+"fits": true,
+"active": true
+}
+]
+}

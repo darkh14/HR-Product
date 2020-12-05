@@ -1,0 +1,4 @@
+{
+"RequestType": "get_all_cvs",
+"MongoConnectionString": "mongodb://Admin:123@34.74.148.6:27017/Admin?authSource=admin"
+}

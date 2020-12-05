@@ -26,8 +26,7 @@ class MongoDBConnector:
         self.is_connected = False
         self.db = None
         self.is_db_chosen = False
-        self.collection = None
-        self.is_collection_chosen = False
+        self._collections = {}
         self.error = ''
 
     def connect(self, uri='', host='', user='', password=''):
@@ -96,21 +95,72 @@ class MongoDBConnector:
             return None
 
     def get_cv(self):
-        if not self.is_collection_chosen:
+        return self._get_collection('cv')
+
+    def write_cv_vacancy_line(self, cv_vacancy_line):
+        return self._write_data('cv_vacancy_labels', cv_vacancy_line)
+
+    def write_cv_vacancy_labels(self, cv_vacancy_labels):
+        is_set = False
+        for label in cv_vacancy_labels:
+            self._write_line('cv_vacancy_labels', label, ['cv_id', 'vacancy_id', 'manager', 'DB'])
+
+    def clear_cv_vacancy_labels(self):
+        self._clear_collection('cv_vacancy_labels')
+
+    def _get_collection(self, collection_name):
+        cur_collection = self._collections.get(collection_name)
+
+        if not cur_collection:
             collection_names = self.get_collection_names()
 
             if not collection_names:
                 self._add_error_text_('Collection names are not defined')
                 return None
-            if 'cv' in collection_names:
-                self.collection = self.db.get_collection('cv')
-                self.is_collection_chosen = True
-                return self.collection
+            if collection_name in collection_names:
+                cur_collection = self.db.get_collection(collection_name)
+                self._collections[collection_name] = cur_collection
+                return cur_collection
             else:
-                self._add_error_text_('"Cv" is not found in collection names')
-                return None
+                cur_collection = self.db.get_collection(collection_name)
+                self._collections[collection_name] = cur_collection
+                return cur_collection
         else:
-            return self.collection
+            return cur_collection
+
+    def _write_data(self, collection_name, data, multiline=False):
+        collection = self._get_collection(collection_name)
+        if collection:
+            result = collection.insert_many(data) if multiline else collection.insert_one(data)
+        else:
+            result = None
+        return result
+
+    def _write_line(self, collection_name, line, id_columns=[]):
+
+        if not id_columns:
+            return self._write_data(collection_name, line)
+
+        id_filter = {}
+        for id_column in id_columns:
+            id_filter[id_column] = line[id_column]
+
+        collection = self._get_collection(collection_name)
+        if collection:
+            id_filter = dict(filter(lambda item: item[0] in id_columns, line.items()))
+            exists = collection.find_one(id_filter)
+            if exists:
+                result = collection.update_one(id_filter, {'$set': line})
+            else:
+                result = collection.insert_one(line)
+        else:
+            result = None
+        return result
+
+    def _clear_collection(self, collection_name):
+        collection = self._get_collection(collection_name)
+        if collection:
+            collection.drop()
 
     def _add_error_text_(self, error_text):
         self.error = self.error + ('; ' if self.error else '') + error_text

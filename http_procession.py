@@ -2,6 +2,7 @@ import machine_learning as ml
 import xml.etree.ElementTree as ET
 import json
 
+
 class НTTPProcessor:
 
     def __init__(self, environ, start_response):
@@ -9,7 +10,7 @@ class НTTPProcessor:
         self.start_response = start_response
         self.parameters = {}
         self.parameters_is_set = False
-        self.output = []
+        self.output = {}
         self.output_values = {}
         self.MongoConnector = None
         self.status = ''
@@ -18,9 +19,6 @@ class НTTPProcessor:
     def set_parameters(self):
 
         if self.environ['REQUEST_METHOD'] == 'POST':
-            # for line in self.environ['wsgi.input']:
-            #     par_string = line.decode()
-            #    print(par_string)
 
             content_length = int(self.environ.get('CONTENT_LENGTH')) if self.environ.get('CONTENT_LENGTH') else 0
 
@@ -37,14 +35,6 @@ class НTTPProcessor:
             if par_string:
                 self.parameters = self.parameters_from_json(par_string)
                 self.parameters_is_set = True
-
-        if self.environ['REQUEST_METHOD'] == 'GET':
-            pass
-    #    if environ['QUERY_STRING'] != '':
-    #        output.append('<h1>Get data:</h1>')
-    #        for ch in d:
-    #            output.append(' = '.join(ch))
-    #            output.append('<br>')
 
     def process(self):
         if not self.parameters_is_set:
@@ -63,10 +53,7 @@ class НTTPProcessor:
                         self._add_parameter_to_output_(key, self.parameters[key] + ' test!')
                         self.status = 'OK'
                 elif self.parameters['RequestType'] == 'get_fitting_cvs':
-                    if not self.parameters.get('MongoConnectionString'):
-                        self.status = 'error'
-                        self.error = 'Parameter ''MongoConnectionString'' have not found'
-                    else:
+                    if self._check_parameter_mongo_string():
                         mongo_connection_string = self.parameters.get('MongoConnectionString')
 
                         ids, error = ml.find_fitting_ids(self.parameters, mongo_connection_string)
@@ -75,13 +62,29 @@ class НTTPProcessor:
                             self.status = 'error'
                             self.error = error
                         else:
-                            # for cv_id in ids:
-                            #    self._add_parameter_to_output_('id_' + str(cv_id['_id']), cv_id)
                             self._add_parameter_to_output_('fitting_cvs', ids)
                             self.status = 'OK'
-                        # else:
-                        #     self.status = 'OK'
-                        #     self.error = ''
+                elif self.parameters['RequestType'] == 'get_all_cvs':
+                    if self._check_parameter_mongo_string():
+                        mongo_connection_string = self.parameters.get('MongoConnectionString')
+                        ids, error = ml.get_all_ids(self.parameters, mongo_connection_string)
+
+                        if error:
+                            self.status = 'error'
+                            self.error = error
+                        else:
+                            self._add_parameter_to_output_('all_cvs', ids)
+                            self.status = 'OK'
+                elif self.parameters['RequestType'] == 'set_cv_vacancy_labels':
+                    if self._check_parameter_mongo_string():
+                        mongo_connection_string = self.parameters.get('MongoConnectionString')
+                        is_set, error = ml.set_cv_vacancy_labels(self.parameters, mongo_connection_string)
+
+                        if not is_set:
+                            self.status = 'error'
+                            self.error = error
+                        else:
+                            self.status = 'OK'
                 else:
                     self.status = 'error'
                     self.error = 'Unknown value of request type ''{}'''.format(self.parameters['RequestType'])
@@ -97,10 +100,16 @@ class НTTPProcessor:
 
         return [output_str]
 
-    def _add_parameter_to_output_(self, key, value):
+    def _check_parameter_mongo_string(self, ):
+        error = False
+        if not self.parameters.get('MongoConnectionString'):
+            self.status = 'error'
+            self.error = 'Parameter ''MongoConnectionString'' have not found'
+            error = True
+        return not error
 
-        cur_dict = {key: value}
-        self.output.append(cur_dict)
+    def _add_parameter_to_output_(self, key, value):
+        self.output[key] = value
 
     @staticmethod
     def parameters_from_xml(xml_string):
@@ -116,16 +125,9 @@ class НTTPProcessor:
 
     @staticmethod
     def parameters_from_json(xml_string):
-        parameters_dict = dict()
-        j_data = json.loads(xml_string)
-        root = j_data.get('#value')
-        if root:
-            for element in root:
-                name_dict = element.get('name')
-                value_dict = element.get('Value')
-                if name_dict and name_dict.get('#value') and value_dict:
-                    parameters_dict[name_dict.get('#value')] = value_dict.get('#value')
-        return parameters_dict
+
+        return json.loads(xml_string)
+
 
 def process(environ, start_response):
 

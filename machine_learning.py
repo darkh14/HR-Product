@@ -97,8 +97,6 @@ class MLProcessor(MongoDBConnector):
 
             self.clear_vacancies = parameters.get('clear_vacancies')
 
-            print(parameters)
-
             if vacancies:
                 for vacancy in vacancies:
 

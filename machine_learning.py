@@ -44,7 +44,7 @@ class MLProcessor(MongoDBConnector):
             if parameters.get('RequestType') in ['get_fitting_cvs', 'get_all_cvs']:
                 self._set_cv_vacancy_parameters(parameters)
             elif parameters.get('RequestType') == 'set_vacancies':
-                self._set_vacancy_parameters()
+                self._set_vacancy_parameters(parameters)
 
     def find_fitting_cvs(self, parameters=None, simple=False):
 
@@ -96,6 +96,8 @@ class MLProcessor(MongoDBConnector):
             vacancies = parameters.get('vacancies')
 
             self.clear_vacancies = parameters.get('clear_vacancies')
+
+            print(parameters)
 
             if vacancies:
                 for vacancy in vacancies:

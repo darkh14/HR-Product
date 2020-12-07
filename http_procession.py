@@ -88,7 +88,7 @@ class НTTPProcessor:
                 elif self.parameters['RequestType'] == 'set_vacancies':
                     if self._check_parameter_mongo_string():
                         mongo_connection_string = self.parameters.get('MongoConnectionString')
-                        is_set, error = ml.set_cv_vacancies(self.parameters, mongo_connection_string)
+                        is_set, error = ml.set_vacancies(self.parameters, mongo_connection_string)
 
                         if not is_set:
                             self.status = 'error'

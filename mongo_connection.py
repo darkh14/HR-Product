@@ -105,8 +105,18 @@ class MongoDBConnector:
         for label in cv_vacancy_labels:
             self._write_line('cv_vacancy_labels', label, ['cv_id', 'vacancy_id', 'manager', 'DB'])
 
+    def write_vacancies(self, dataset):
+        for line in dataset:
+            self._write_line('vacancies', line, ['vacancy_id', 'DB'])
+
     def clear_cv_vacancy_labels(self):
         self._clear_collection('cv_vacancy_labels')
+
+    def clear_vacancies(self):
+        self._clear_collection('vacancies')
+
+    def clear_cv_vacancies(self):
+        self._clear_collection('vacancy')
 
     def _get_collection(self, collection_name):
         cur_collection = self._collections.get(collection_name)

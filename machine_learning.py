@@ -13,27 +13,38 @@ class MLProcessor(MongoDBConnector):
                            'specialization', 'еmployment', 'work_schedule', 'seniority', 'experience',
                            'skills', 'education_level', 'education', 'resume_link', 'site_id']
         self._comp_fields = {'specialization': {'type': 'array'},
-                              'seniority': {'type': 'dict', 'fields': ['years', 'months']},
-                              'experience': {'type': 'array_dict',
-                                    'fields': ['start', 'end', 'timeinterval', 'company', 'position', 'description']},
-                              'skills': {'type': 'array'},
-                              'education': {'type': 'array_dict',
-                                    'fields': ['final', 'name', 'organization']}}
+                             'seniority': {'type': 'dict', 'fields': ['years', 'months']},
+                             'experience': {'type': 'array_dict',
+                                            'fields': ['start', 'end', 'timeinterval', 'company', 'position',
+                                                       'description']},
+                             'skills': {'type': 'array'},
+                             'education': {'type': 'array_dict',
+                                           'fields': ['final', 'name', 'organization']}}
+        self._vacancy_fields = ['vacancy_id', 'DB', 'code', 'name', 'creation_date', 'position', 'duties',
+                                'searching_parameters', 'unit', 'accordance', 'status', 'status', 'requirements',
+                                'conditions', 'age_from', 'age_to', 'education', 'workplace', 'gender',
+                                'estimated_revenue', 'profile', 'work_experience_from', 'work_experience_to',
+                                'work_schedule', 'employment_type', 'contract_type', 'organization', 'grade']
         self._cv_vacancy_labels_fields = ['cv_id', 'vacancy_id', 'manager', 'DB', 'fits', 'active']
         self._filter_parameters_names = ['AgeBegin', 'AgeEnd', 'Gender', 'WorkExperienceBegin',
                                          'WorkExperienceEnd', 'Education', 'Requirements', 'Duties']
         self._filter_is_set = False
         self._cv_vacancy_parameters_is_set = False
+        self._vacancy_parameters_is_set = False
         self._filter_parameters = dict.fromkeys(self._filter_parameters_names, '')
         self.threshold = 0.565
         self._cv_vacancy_labels = []
+        self._vacancies = []
         self.clear_labels = False
 
         if parameters:
             self._set_filter(parameters)
             if parameters.get('threshold'):
                 self.threshold = parameters.get('threshold')
-            self._set_cv_vacancy_parameters(parameters)
+            if parameters.get('RequestType') in ['get_fitting_cvs', 'get_all_cvs']:
+                self._set_cv_vacancy_parameters(parameters)
+            elif parameters.get('RequestType') == 'set_vacancies':
+                self._set_vacancy_parameters()
 
     def find_fitting_cvs(self, parameters=None, simple=False):
 
@@ -63,6 +74,42 @@ class MLProcessor(MongoDBConnector):
             self.write_cv_vacancy_labels(self._cv_vacancy_labels)
             is_set = True
         return is_set
+
+    def set_vacancies(self, parameters=None, mongo_connection_string=''):
+        is_set = False
+        if parameters:
+            self._set_vacancy_parameters(parameters)
+        self.connect(uri=mongo_connection_string)
+        if self.is_connected:
+
+            if self.clear_vacancies:
+                self.clear_vacancies()
+
+            self.write_vacancies(self._vacancies)
+            is_set = True
+        return is_set
+
+    def _set_vacancy_parameters(self, parameters):
+
+        if not self._vacancy_parameters_is_set:
+            self._cv_vacancy_labels = []
+            vacancies = parameters.get('vacancies')
+
+            self.clear_vacancies = parameters.get('clear_vacancies')
+
+            if vacancies:
+                for vacancy in vacancies:
+
+                    if vacancy:
+                        vacancy_line = vacancy.copy()
+
+                        for vacancy_name in self._vacancy_fields:
+                            vacancy_line.setdefault(vacancy_name)
+
+                        if vacancy_line.get('vacancy_id'):
+                            self._vacancies.append(vacancy_line)
+
+                self._vacancy_parameters_is_set = True
 
     def _set_filter(self, filter_parameters):
         if not self._filter_is_set:
@@ -310,5 +357,13 @@ def set_cv_vacancy_labels(parameters, mongo_connection_string):
 
     ml_processor = MLProcessor(uri=mongo_connection_string, parameters=parameters)
     is_set = ml_processor.set_cv_vacancy_labels()
+
+    return is_set, ml_processor.error
+
+
+def set_vacancies(parameters, mongo_connection_string):
+
+    ml_processor = MLProcessor(uri=mongo_connection_string, parameters=parameters)
+    is_set = ml_processor.set_vacancies()
 
     return is_set, ml_processor.error

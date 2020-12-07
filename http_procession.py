@@ -85,6 +85,16 @@ class НTTPProcessor:
                             self.error = error
                         else:
                             self.status = 'OK'
+                elif self.parameters['RequestType'] == 'set_vacancies':
+                    if self._check_parameter_mongo_string():
+                        mongo_connection_string = self.parameters.get('MongoConnectionString')
+                        is_set, error = ml.set_cv_vacancies(self.parameters, mongo_connection_string)
+
+                        if not is_set:
+                            self.status = 'error'
+                            self.error = error
+                        else:
+                            self.status = 'OK'
                 else:
                     self.status = 'error'
                     self.error = 'Unknown value of request type ''{}'''.format(self.parameters['RequestType'])

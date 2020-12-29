@@ -11,7 +11,7 @@ class MLProcessor(MongoDBConnector):
         self.error = ''
         self._cv_fields = ['_id', 'address', 'gender', 'salary', 'valuta', 'age', 'position', 'about_me', 'category',
                            'specialization', 'еmployment', 'work_schedule', 'seniority', 'experience',
-                           'skills', 'education_level', 'education', 'resume_link', 'site_id']
+                           'skills', 'education_level', 'education', 'resume_link', 'site_id', 'threshold']
         self._comp_fields = {'specialization': {'type': 'array'},
                              'seniority': {'type': 'dict', 'fields': ['years', 'months']},
                              'experience': {'type': 'array_dict',
@@ -153,13 +153,21 @@ class MLProcessor(MongoDBConnector):
             self._cv = self.get_cv()
 
             for cv_line in self._cv.find():
+
+                cv_line['threshold'] = self._get_av_threshold(cv_line)
                 add = variant == 'all' or variant == 'fitting' and self._check_cv_row(cv_line)
                 if add:
                     self._add_cv_line(cv_line)
 
+        self._fitting_cv.sort(key=lambda x: x['threshold'], reverse=True)
+
         return self._fitting_cv
 
     def _check_cv_row(self, cv_row):
+
+        return cv_row['threshold'] >= self.threshold
+
+    def _get_av_threshold(self, cv_row):
         threshold_list = []
         age_processed = False
         work_experience_processed = False
@@ -200,7 +208,8 @@ class MLProcessor(MongoDBConnector):
                 threshold_list.append(cur_threshold)
 
         av_threshold = sum(threshold_list)/len(threshold_list) if len(threshold_list) > 0 else 0
-        return av_threshold >= self.threshold
+
+        return av_threshold
 
     def _add_cv_line(self, cv_line):
 
@@ -236,6 +245,13 @@ class MLProcessor(MongoDBConnector):
 
     @staticmethod
     def _process_range_parameter(value, par_begin, par_end, endnul_as_inf=False):
+
+        if not value:
+            value = 0
+
+        if type(value) is str:
+            value = float(value)
+
         if not value:
             value = 0
         if not par_begin:

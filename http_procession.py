@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import json
 
 
-class НTTPProcessor:
+class HTTPProcessor:
 
     def __init__(self, environ, start_response):
         self.environ = environ
@@ -141,7 +141,7 @@ class НTTPProcessor:
 
 def process(environ, start_response):
 
-    processor = НTTPProcessor(environ, start_response)
+    processor = HTTPProcessor(environ, start_response)
     output = processor.process()
 
     return output

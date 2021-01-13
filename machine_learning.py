@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+import sys
+
 from mongo_connection import MongoDBConnector
 import difflib
 
@@ -5,12 +8,13 @@ import difflib
 class MLProcessor(MongoDBConnector):
 
     def __init__(self, uri='', parameters=None):
+        print(sys.version)
         super().__init__(uri=uri)
         self._cv = []
         self._fitting_cv = []
         self.error = ''
         self._cv_fields = ['_id', 'address', 'gender', 'salary', 'valuta', 'age', 'position', 'about_me', 'category',
-                           'specialization', 'еmployment', 'work_schedule', 'seniority', 'experience',
+                           'specialization', 'employment', 'work_schedule', 'seniority', 'experience',
                            'skills', 'education_level', 'education', 'resume_link', 'site_id', 'threshold']
         self._comp_fields = {'specialization': {'type': 'array'},
                              'seniority': {'type': 'dict', 'fields': ['years', 'months']},
@@ -152,12 +156,14 @@ class MLProcessor(MongoDBConnector):
         if self.is_connected:
             self._cv = self.get_cv()
 
-            for cv_line in self._cv.find():
+            if self._cv:
 
-                cv_line['threshold'] = self._get_av_threshold(cv_line)
-                add = variant == 'all' or variant == 'fitting' and self._check_cv_row(cv_line)
-                if add:
-                    self._add_cv_line(cv_line)
+                for cv_line in self._cv.find():
+
+                    cv_line['threshold'] = self._get_av_threshold(cv_line)
+                    add = variant == 'all' or variant == 'fitting' and self._check_cv_row(cv_line)
+                    if add:
+                        self._add_cv_line(cv_line)
 
         self._fitting_cv.sort(key=lambda x: x['threshold'], reverse=True)
 

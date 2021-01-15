@@ -1,5 +1,6 @@
 import pymongo
 
+
 class MongoDBConnector:
     def __init__(self, host='', user='', password='', uri=''):
         if host:
@@ -91,23 +92,25 @@ class MongoDBConnector:
         if db:
             return db.list_collection_names()
         else:
-            self._add_error_text_('"Hr" is not found in Db names')
+            # self._add_error_text_('"Hr" is not found in Db names')
             return None
 
     def get_cv(self):
         return self._get_collection('cv')
 
     def write_cv_vacancy_line(self, cv_vacancy_line):
-        return self._write_data('cv_vacancy_labels', cv_vacancy_line)
+        return self.write_line('cv_vacancy_labels', cv_vacancy_line, ['cv_id', 'vacancy_id', 'manager', 'DB'])
+
+    def write_cv_line(self, cv_line):
+        return self.write_line('cv', cv_line, ['site_id'])
 
     def write_cv_vacancy_labels(self, cv_vacancy_labels):
-        is_set = False
         for label in cv_vacancy_labels:
-            self._write_line('cv_vacancy_labels', label, ['cv_id', 'vacancy_id', 'manager', 'DB'])
+            self.write_line('cv_vacancy_labels', label, ['cv_id', 'vacancy_id', 'manager', 'DB'])
 
     def write_vacancies(self, dataset):
         for line in dataset:
-            self._write_line('vacancies', line, ['vacancy_id', 'DB'])
+            self.write_line('vacancies', line, ['vacancy_id', 'DB'])
 
     def clear_cv_vacancy_labels(self):
         self._clear_collection('cv_vacancy_labels')
@@ -146,7 +149,7 @@ class MongoDBConnector:
             result = None
         return result
 
-    def _write_line(self, collection_name, line, id_columns=[]):
+    def write_line(self, collection_name, line, id_columns=[]):
 
         if not id_columns:
             return self._write_data(collection_name, line)

@@ -15,7 +15,7 @@ class MLProcessor(MongoDBConnector):
         self.error = ''
         self._cv_fields = ['_id', 'address', 'gender', 'salary', 'valuta', 'age', 'position', 'about_me', 'category',
                            'specialization', 'employment', 'work_schedule', 'seniority', 'experience',
-                           'skills', 'education_level', 'education', 'resume_link', 'site_id', 'threshold']
+                           'skills', 'education_level', 'education', 'resume_link', 'site_id', 'site_url', 'threshold']
         self._comp_fields = {'specialization': {'type': 'array'},
                              'seniority': {'type': 'dict', 'fields': ['years', 'months']},
                              'experience': {'type': 'array_dict',

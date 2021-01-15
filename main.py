@@ -12,7 +12,7 @@ import http_procession
 import json
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-import tensorflow as tf
+# import tensorflow as tf
 import os
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -53,15 +53,17 @@ def make_parameters_string_from_json(request_type):
 def t_start_response(status, headers):
     pass
 
+
 if __name__ == '__main__':
 
-    print(tf.__version__)
-    print(tf.config.list_physical_devices('GPU'))
+    # print(tf.__version__)
+    # print(tf.config.list_physical_devices('GPU'))
 
-    request_types = []
+    request_types = list()
     # request_types.append('get_fitting_cvs')
     # request_types.append('get_all_cvs')
     # request_types.append('set_cv_vacancy_labels')
+    request_types.append('refill_cv_collection')
 
     for request_type in request_types:
         output = t_application(request_type, t_start_response)

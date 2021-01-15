@@ -1,4 +1,5 @@
 import machine_learning as ml
+import cv_parsing
 import xml.etree.ElementTree as ET
 import json
 
@@ -95,6 +96,14 @@ class HTTPProcessor:
                             self.error = error
                         else:
                             self.status = 'OK'
+                elif self.parameters['RequestType'] == 'refill_cv_collection':
+                    if self._check_parameter_mongo_string():
+                        mongo_connection_string = self.parameters.get('MongoConnectionString')
+                        status, error = cv_parsing.refill_cv_collection(self.parameters, mongo_connection_string)
+
+                        self.status = status
+                        self.error = error
+
                 else:
                     self.status = 'error'
                     self.error = 'Unknown value of request type ''{}'''.format(self.parameters['RequestType'])

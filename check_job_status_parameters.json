@@ -1,0 +1,5 @@
+{
+"request_type": "check_job_status",
+"job": "refill_cv_collection",
+"limit": 10
+}

@@ -63,7 +63,8 @@ if __name__ == '__main__':
     # request_types.append('get_fitting_cvs')
     # request_types.append('get_all_cvs')
     # request_types.append('set_cv_vacancy_labels')
-    request_types.append('refill_cv_collection')
+    # request_types.append('refill_cv_collection')
+    request_types.append('check_job_status')
 
     for request_type in request_types:
         output = t_application(request_type, t_start_response)
@@ -78,4 +79,8 @@ if __name__ == '__main__':
             print(output_dict['fitting_cvs'][0])
         elif request_type == 'get_all_cvs':
             print(output_dict['all_cvs'][0])
+        elif request_type == 'refill_cv_collection':
+            print(output_dict)
+        elif request_type == 'check_job_status':
+            print(output_dict)
 

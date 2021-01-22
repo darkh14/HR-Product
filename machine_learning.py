@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
-import sys
 
 from mongo_connection import MongoDBConnector
 import difflib
 
 
-class MLProcessor(MongoDBConnector):
+class MLProcessor:
 
-    def __init__(self, uri='', parameters=None):
-        print(sys.version)
-        super().__init__(uri=uri)
-        self._cv = []
-        self._fitting_cv = []
-        self.error = ''
+    def __init__(self, **kwargs):
+
+        self.db_connector = kwargs.get('db_connector') or MongoDBConnector()
+
+        self._filter_names = ['age_begin', 'age_end', 'gender', 'work_experience_begin',
+                              'work_experience_end', 'education', 'requirements', 'duties']
         self._cv_fields = ['_id', 'address', 'gender', 'salary', 'valuta', 'age', 'position', 'about_me', 'category',
                            'specialization', 'employment', 'work_schedule', 'seniority', 'experience',
                            'skills', 'education_level', 'education', 'resume_link', 'site_id', 'site_url', 'threshold']
@@ -29,132 +28,112 @@ class MLProcessor(MongoDBConnector):
                                 'conditions', 'age_from', 'age_to', 'education', 'workplace', 'gender',
                                 'estimated_revenue', 'profile', 'work_experience_from', 'work_experience_to',
                                 'work_schedule', 'employment_type', 'contract_type', 'organization', 'grade']
-        self._cv_vacancy_labels_fields = ['cv_id', 'vacancy_id', 'manager', 'DB', 'fits', 'active']
-        self._filter_parameters_names = ['AgeBegin', 'AgeEnd', 'Gender', 'WorkExperienceBegin',
-                                         'WorkExperienceEnd', 'Education', 'Requirements', 'Duties']
-        self._filter_is_set = False
-        self._cv_vacancy_parameters_is_set = False
-        self._vacancy_parameters_is_set = False
-        self._filter_parameters = dict.fromkeys(self._filter_parameters_names, '')
-        self.threshold = 0.565
-        self._cv_vacancy_labels = []
-        self._vacancies = []
-        self.clear_labels = False
+        self._cv_vacancy_labels_fields = ['cv_id', 'vacancy_id', 'manager', 'db', 'fits', 'active']
 
-        if parameters:
-            self._set_filter(parameters)
-            if parameters.get('threshold'):
-                self.threshold = parameters.get('threshold')
-            if parameters.get('RequestType') in ['get_fitting_cvs', 'get_all_cvs']:
-                self._set_cv_vacancy_parameters(parameters)
-            elif parameters.get('RequestType') == 'set_vacancies':
-                self._set_vacancy_parameters(parameters)
+        self.threshold = kwargs.get('threshold') or 0.565
+        self._filter = self._get_filter(kwargs.get('filter'))
 
-    def find_fitting_cvs(self, parameters=None, simple=False):
+        self._clear_vacancies = bool(kwargs.get('clear_vacancies'))
+        self._vacancies = self._get_vacancies_from_parameters(kwargs.get('vacancies') or [])
 
-        if parameters:
-            self._set_filter(parameters)
+        self._clear_labels = bool(kwargs.get('clear_labels'))
+        self._cv_vacancy_labels = self._get_cv_vacancy_labels_from_parameters(kwargs.get('cv_vacancy_labels') or [])
+
+        self._cv = []
+        self._fitting_cv = []
+        self.error = ''
+        self.kwargs = kwargs
+
+    def find_fitting_cvs(self, **kwargs):
+        simple = bool(kwargs.get('simple'))
 
         if simple:
-            cvs = self._simple_find_fitting_cvs(parameters)
+            cvs = self._simple_find_fitting_cvs(**kwargs)
         else:
             cvs = []  # neural network
         return cvs
 
     def get_all_cvs(self):
-
         return self._fill_cvs(variant='all')
 
-    def set_cv_vacancy_labels(self, parameters=None, mongo_connection_string=''):
+    def set_cv_vacancy_labels(self, **kwargs):
+
+        cv_vacancy_labels = kwargs.get('cv_vacancy_labels') or self._cv_vacancy_labels
+
+        clear_labels = kwargs.get('clear_labels') if kwargs.get('clear_labels') is not None else self._clear_labels
+
         is_set = False
-        if parameters:
-            self._set_cv_vacancy_parameters(parameters)
-        self.connect(uri=mongo_connection_string)
-        if self.is_connected:
+        self.db_connector.connect(**kwargs)
+        if self.db_connector.is_connected:
 
-            if self.clear_labels:
-                self.clear_cv_vacancy_labels()
+            if clear_labels:
+                self.db_connector.clear_cv_vacancy_labels()
 
-            self.write_cv_vacancy_labels(self._cv_vacancy_labels)
+            self.db_connector.write_cv_vacancy_labels(cv_vacancy_labels)
             is_set = True
         return is_set
 
-    def set_vacancies(self, parameters=None, mongo_connection_string=''):
+    def set_vacancies(self, **kwargs):
+
+        vacancies = kwargs.get('vacancies') or self._vacancies
+        clear_vacancies = kwargs.get('clear_vacancies') if kwargs.get('clear_vacancies') is not None else self._clear_vacancies
+
         is_set = False
-        if parameters:
-            self._set_vacancy_parameters(parameters)
-        self.connect(uri=mongo_connection_string)
-        if self.is_connected:
 
-            if self.clear_vacancies:
-                self.clear_vacancies()
+        self.db_connector.connect(**kwargs)
+        if self.db_connector.is_connected:
 
-            self.write_vacancies(self._vacancies)
+            if clear_vacancies:
+                self.db_connector.clear_vacancies()
+
+            self.db_connector.write_vacancies(vacancies)
             is_set = True
         return is_set
 
-    def _set_vacancy_parameters(self, parameters):
+    def _get_filter(self, cv_filter):
 
-        if not self._vacancy_parameters_is_set:
+        if cv_filter:
+            for filter_name in self._filter_names:
+                cv_filter.setdefault(filter_name, '')
+        else:
+            cv_filter = {}
+
+        return cv_filter
+
+    def _get_vacancies_from_parameters(self, vacancies=None):
+        if not hasattr(self, '_vacancies'):
+            self._vacancies = []
+        vacancies = vacancies or self._vacancies or []
+        temp_lines = []
+        for line in vacancies:
+            if line.get('vacancy_id'):
+                for field in self._vacancy_fields:
+                    line.setdefault(field, '')
+                temp_lines.append(line)
+
+        return temp_lines
+
+    def _get_cv_vacancy_labels_from_parameters(self, labels):
+        if not hasattr(self, '_cv_vacancy_labels'):
             self._cv_vacancy_labels = []
-            vacancies = parameters.get('vacancies')
+        labels = labels or self._cv_vacancy_labels or []
+        temp_lines = []
+        for line in labels:
+            if line.get('cv_id') and line.get('vacancy_id'):
+                for field in self._cv_vacancy_labels_fields:
+                    line.setdefault(field, '')
+                temp_lines.append(line)
 
-            self.clear_vacancies = parameters.get('clear_vacancies')
+        return temp_lines
 
-            if vacancies:
-                for vacancy in vacancies:
+    def _simple_find_fitting_cvs(self, **kwargs):
+        return self._fill_cvs(variant='fitting', **kwargs)
 
-                    if vacancy:
-                        vacancy_line = vacancy.copy()
+    def _fill_cvs(self, variant='all', **kwargs):
 
-                        for vacancy_name in self._vacancy_fields:
-                            vacancy_line.setdefault(vacancy_name)
-
-                        if vacancy_line.get('vacancy_id'):
-                            self._vacancies.append(vacancy_line)
-
-                self._vacancy_parameters_is_set = True
-
-    def _set_filter(self, filter_parameters):
-        if not self._filter_is_set:
-            for name in self._filter_parameters_names:
-                par = filter_parameters.get(name)
-                if par:
-                    self._filter_parameters[name] = par
-        self._filter_is_set = True
-
-    def _set_cv_vacancy_parameters(self, parameters):
-
-        if not self._cv_vacancy_parameters_is_set:
-            self._cv_vacancy_labels = []
-            labels = parameters.get('cv_vacancy_labels')
-
-            self.clear_labels = parameters.get('clear_labels')
-
-            if labels:
-                for label in labels:
-
-                    if label:
-                        label_line = label.copy()
-
-                        for label_name in self._cv_vacancy_labels_fields:
-                            label_line.setdefault(label_name)
-
-                        if label_line.get('cv_id') and label_line.get('vacancy_id'):
-                            self._cv_vacancy_labels.append(label_line)
-
-                self._cv_vacancy_parameters_is_set = True
-
-    def _simple_find_fitting_cvs(self, parameters, mongo_connection_string=''):
-        return self._fill_cvs(variant='fitting', parameters=parameters, mongo_connection_string=mongo_connection_string)
-
-    def _fill_cvs(self, parameters=None, variant='all', mongo_connection_string=''):
-        if variant == 'fitting':
-            if parameters:
-                self._set_filter(parameters)
-        self.connect(uri=mongo_connection_string)
-        if self.is_connected:
-            self._cv = self.get_cv()
+        self.db_connector.connect()
+        if self.db_connector.is_connected:
+            self._cv = self.db_connector.get_cv()
 
             if self._cv:
 
@@ -170,46 +149,45 @@ class MLProcessor(MongoDBConnector):
         return self._fitting_cv
 
     def _check_cv_row(self, cv_row):
-
         return cv_row['threshold'] >= self.threshold
 
     def _get_av_threshold(self, cv_row):
         threshold_list = []
         age_processed = False
         work_experience_processed = False
-        for par_name in self._filter_parameters_names:
+        for par_name in self._filter_names:
 
-            if (par_name == 'AgeBegin' or par_name == 'AgeEnd') and not age_processed:
+            if (par_name == 'age_begin' or par_name == 'age_end') and not age_processed:
                 cur_threshold = self._process_range_parameter(cv_row.get('age'),
-                                                              self._filter_parameters.get('AgeBegin'),
-                                                              self._filter_parameters.get('AgeEnd'),
+                                                              self._filter.get('age_begin'),
+                                                              self._filter.get('age_end'),
                                                               True)
                 threshold_list.append(cur_threshold)
                 age_processed = True
-            elif par_name == 'Gender':
+            elif par_name == 'gender':
                 gender_dict = {'Мужчина': 'm', 'Женщина': 'f'}
                 cur_threshold = self._process_enum_parameter(cv_row.get('gender'),
-                                                             self._filter_parameters.get(par_name),
+                                                             self._filter.get(par_name),
                                                              gender_dict, True)
                 threshold_list.append(cur_threshold)
-            elif (par_name == 'WorkExperienceBegin' or
-                  par_name == 'WorkExperienceEnd') and not work_experience_processed:
+            elif (par_name == 'work_experience_begin' or
+                  par_name == 'work_experience_end') and not work_experience_processed:
                 pass  # нет полей в таблице резюме для обработки данного параметра
-            elif par_name == 'Education':
+            elif par_name == 'education':
                 pass  # нет полей в таблице резюме для обработки данного параметр
-            elif par_name == 'Requirements':
+            elif par_name == 'requirements':
                 cur_threshold = 0
-                cur_threshold += self._process_string_parameter(cv_row.get('position'), self._filter_parameters.get(par_name))
-                cur_threshold += self._process_string_parameter(cv_row.get('category'), self._filter_parameters.get(par_name))
-                cur_threshold += self._process_list_parameter(cv_row.get('specialization'), self._filter_parameters.get(par_name))
+                cur_threshold += self._process_string_parameter(cv_row.get('position'), self._filter.get(par_name))
+                cur_threshold += self._process_string_parameter(cv_row.get('category'), self._filter.get(par_name))
+                cur_threshold += self._process_list_parameter(cv_row.get('specialization'), self._filter.get(par_name))
                 cur_threshold /= 3
                 threshold_list.append(cur_threshold)
 
-            elif par_name == 'Duties':
+            elif par_name == 'duties':
                 cur_threshold = 0
-                cur_threshold += self._process_string_parameter(cv_row.get('position'), self._filter_parameters.get(par_name))
-                cur_threshold += self._process_string_parameter(cv_row.get('about_me'), self._filter_parameters.get(par_name))
-                cur_threshold += self._process_list_parameter(cv_row.get('specialization'), self._filter_parameters.get(par_name))
+                cur_threshold += self._process_string_parameter(cv_row.get('position'), self._filter.get(par_name))
+                cur_threshold += self._process_string_parameter(cv_row.get('about_me'), self._filter.get(par_name))
+                cur_threshold += self._process_list_parameter(cv_row.get('specialization'), self._filter.get(par_name))
                 cur_threshold /= 3
                 threshold_list.append(cur_threshold)
 
@@ -218,7 +196,6 @@ class MLProcessor(MongoDBConnector):
         return av_threshold
 
     def _add_cv_line(self, cv_line):
-
         cur_line = {}
         for name in self._cv_fields:
             comp_field = self._comp_fields.get(name)
@@ -246,7 +223,7 @@ class MLProcessor(MongoDBConnector):
                             cur_line[name].append(cur_line_row_element)
             else:
                 cur_line[name] = cv_line.get(name)
-        cur_line['site_id'] = self.get_id_from_link(cur_line['resume_link'])
+        cur_line['site_id'] = self._get_id_from_link(cur_line['resume_link'])
         self._fitting_cv.append(cur_line)
 
     @staticmethod
@@ -348,7 +325,7 @@ class MLProcessor(MongoDBConnector):
         return matcher.ratio()
 
     @staticmethod
-    def get_id_from_link(link):
+    def _get_id_from_link(link):
         q_list = link.split('?')
         if len(q_list) == 0:
             return ''
@@ -359,33 +336,33 @@ class MLProcessor(MongoDBConnector):
         return s_list[-1]
 
 
-def find_fitting_ids(parameters, mongo_connection_string):
+def find_fitting_ids(**kwargs):
 
-    ml_processor = MLProcessor(uri=mongo_connection_string, parameters=parameters)
+    ml_processor = MLProcessor(**kwargs)
     ids = ml_processor.find_fitting_cvs(simple=True)
 
     return ids, ml_processor.error
 
 
-def get_all_ids(parameters, mongo_connection_string):
+def get_all_ids(**kwargs):
 
-    ml_processor = MLProcessor(uri=mongo_connection_string, parameters=parameters)
+    ml_processor = MLProcessor(**kwargs)
     ids = ml_processor.get_all_cvs()
 
     return ids, ml_processor.error
 
 
-def set_cv_vacancy_labels(parameters, mongo_connection_string):
+def set_cv_vacancy_labels(**kwargs):
 
-    ml_processor = MLProcessor(uri=mongo_connection_string, parameters=parameters)
+    ml_processor = MLProcessor(**kwargs)
     is_set = ml_processor.set_cv_vacancy_labels()
 
     return is_set, ml_processor.error
 
 
-def set_vacancies(parameters, mongo_connection_string):
+def set_vacancies(**kwargs):
 
-    ml_processor = MLProcessor(uri=mongo_connection_string, parameters=parameters)
+    ml_processor = MLProcessor(**kwargs)
     is_set = ml_processor.set_vacancies()
 
     return is_set, ml_processor.error

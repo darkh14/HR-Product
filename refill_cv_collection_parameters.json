@@ -1,6 +1,8 @@
 {
-"RequestType": "refill_cv_collection",
-"MongoConnectionString": "mongodb://Admin:123@34.74.148.6:27017/Admin?authSource=admin",
-"searching_text": "Программист 1c",
-"first_lines": 0
+"request_type": "refill_cv_collection",
+"job": true,
+"limit": 100,
+"parsing_filter": {
+"text": "Программист 1с"
+}
 }

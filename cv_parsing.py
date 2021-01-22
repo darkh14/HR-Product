@@ -4,17 +4,21 @@ from lxml import html
 from mongo_connection import MongoDBConnector
 import datetime
 import pandas as pd
+import uuid
+import sys
+import subprocess
+import traceback
 
 
-class BaseParser(MongoDBConnector):
+class BaseParser:
     __metaclass__ = ABCMeta
 
-    def __init__(self, mongo_uri='', **kwargs):
-        super().__init__(uri=mongo_uri)
-        self.base_url = ''
-        self.url = ''
-        self.dataset = list
+    def __init__(self, **kwargs):
+        super().__init__()
+
+        self.dataset = list()
         self.status = ''
+        self.error = ''
         self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'}
 
         self.cv_fields = ['_id', 'address', 'gender', 'salary', 'valuta', 'age', 'position', 'about_me', 'category',
@@ -26,17 +30,18 @@ class BaseParser(MongoDBConnector):
                                                                             'position', 'description']},
                             'skills': {'type': 'array'},
                             'education': {'type': 'array_dict', 'fields': ['final', 'name', 'organization']}}
-        self.first_lines = kwargs.get('first_lines') if kwargs.get('first_lines') else 0
-        self.write_to = kwargs.get('write_to') if kwargs.get('write_to') else 'mongo'
+        self.limit = kwargs.get('limit') or 0
+        self.write_to = kwargs.get('write_to') or 'mongo'
+        self.db_connector = kwargs.get('mongo_connector') or MongoDBConnector()
+        self.kwargs = kwargs
+        self.job = bool(kwargs.get('job'))
 
     @abstractmethod
-    def parse(self, parse_filter=None):
-        """method for parsing site and saving result to mongo DB"""
+    def parse(self, parsing_filter=None):
+        """method for parsing site and saving result to DB or file"""
 
     def write_cv_data(self, cv_data):
         if self.write_to == 'mongo':
-            if not self.is_connected:
-                self.connect()
             self._write_cv_to_db(cv_data)
         elif self.write_to == 'json':
             self._write_cv_to_json(cv_data)
@@ -45,17 +50,17 @@ class BaseParser(MongoDBConnector):
             self.status = 'error'
 
     def _write_cv_to_db(self, cv_data):
-        self.write_cv_line(cv_data)
+        self.db_connector.write_cv_line(cv_data)
 
     def _write_cv_to_json(self, cv_data):
         self.dataset.append(cv_data)
 
     def get_cv_data(self, path_el, **kwargs):
-        line = dict()
+        cv_line = dict()
         for cv_field in self.cv_fields:
             if cv_field != '_id':
-                line[cv_field] = self.get_cv_field(path_el, cv_field, **kwargs)
-        return line
+                cv_line[cv_field] = self.get_cv_field(path_el, cv_field, **kwargs)
+        return cv_line
 
     def get_cv_field(self, path_el, field_name, **kwargs):
 
@@ -252,25 +257,40 @@ class BaseParser(MongoDBConnector):
 
 class HeadHunterParser(BaseParser):
 
-    def __init__(self, mongo_uri='', **kwargs):
-        super().__init__(mongo_uri, **kwargs)
-        self.base_url = 'https://hh.ru'
-        self.url = self.base_url + '/search/resume'
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.base_url = kwargs.get('base_url') or 'https://hh.ru'
+        self.url = self.base_url + (kwargs.get('add_url') or '/search/resume')
+
         self.params = {'exp_period': 'all_time', 'logic': 'normal', 'order_by': 'relevance',
-                       'pos': 'full_text', 'text': r'Программист 1с'}
-        if kwargs.get('searching_text'):
-            self.params['text'] = kwargs.get('searching_text')
+                       'pos': 'full_text'}
+        self.parsing_filter = kwargs.get('parsing_filter') or {'text': r'Программист 1с'}
+
+        self.allowed_filter_fields = ['text', 'exp_period']
+        if self.parsing_filter:
+            for field_name, field_value in self.parsing_filter.items():
+                if field_name in self.allowed_filter_fields:
+                    self.params[field_name] = field_value
+
+        self.kwargs.update(kwargs)
+
         self.current_salary_data = None
         self.current_link = ''
 
-    def parse(self, parse_filter=None):
+    def parse(self, parsing_filter=None):
 
         current_url = self.url
 
         counter = 1
         page_counter = 1
 
-        params = self.params
+        params = self.params.copy()
+
+        if parsing_filter:
+            for field_name, field_value in parsing_filter.items():
+                if field_name in self.allowed_filter_fields:
+                    params[field_name] = field_value
+
         stop = False
 
         while current_url:
@@ -281,11 +301,12 @@ class HeadHunterParser(BaseParser):
 
             cv_links = root.xpath("//a[@class='resume-search-item__name']/@href")
 
-            print('Page ' + str(page_counter))
+            if not self.job:
+                print('Page ' + str(page_counter))
 
             for cv_link in cv_links:
 
-                if self.first_lines and counter > self.first_lines:
+                if self.limit and counter > self.limit:
                     stop = True
                     break
 
@@ -299,7 +320,8 @@ class HeadHunterParser(BaseParser):
                 self.write_cv_data(cv_data)
 
                 self.current_salary_data = None
-                print('Cv ' + str(counter) + ': ' + self.current_link)
+                if not self.job:
+                    print('Cv ' + str(counter) + ': ' + self.current_link)
 
                 counter += 1
 
@@ -577,49 +599,104 @@ class HeadHunterParser(BaseParser):
 
 class ParsingTool:
 
-    def __init__(self, site_list=None, parameters=None, mongo_uri=''):
+    def __init__(self, **kwargs):
+
+        job = kwargs.get('job')
+        if job is not None:
+            self.job = job
+        else:
+            self.job = True
+
+        self.new_job_id = kwargs.get('new_job_id') or ''
         self.status = ''
         self.error = ''
-        self.available_sites = ['hh.ru']
-        self.site_list = site_list or ['hh.ru']
+
         self.site_parsers = {'hh.ru': HeadHunterParser}
-        self.parameters = parameters
-        self.mongo_uri = mongo_uri
 
-    def _check_sites(self):
-        for site in self.site_list:
-            if site not in self.available_sites:
-                self.status = 'error'
-                self.error = 'Site {} is not available'.format(site)
-                break
+        self.site_list = kwargs.get('site_list') or self.site_parsers.keys()
 
-        return self.status != 'error'
+        self.kwargs = kwargs
+        self.db_connector = kwargs.get('db_connector') or MongoDBConnector()
+        self.parsing_filter = kwargs.get('parsing_filter') or {}
 
-    def parse(self):
-        for site in self.site_list:
-            site_parser = self.site_parsers.get(site)(mongo_uri=self.mongo_uri, **self.parameters)
+    def parse(self, **kwargs):
 
-            result = site_parser.parse()
+        parsing_par = self.kwargs.copy()
+        parsing_par.update(kwargs)
 
-            if result:
-                self.status = 'OK'
-            else:
-                self.status = 'error'
-                self.error = 'Site parser {} '.format(site) + ' parsing error. ' + site_parser.error
+        new_job_id = str(uuid.uuid4())
 
-        return self.status == 'OK'
+        if self.job:
+
+            job_name = 'refill_cv_collection'
+            new_line = {'job_id': new_job_id, 'job': job_name, 'status': 'created',
+                        'parameters': parsing_par, 'error': ''}
+
+            self.db_connector.write_job(new_line, ['job_id', 'job'])
+
+            p = subprocess.Popen(['python', 'cv_parsing.py', '-job', 'refill_cv_collection', new_job_id])
+
+            self.status = 'OK'
+        else:
+            for site in self.site_list:
+                site_parser = self.site_parsers.get(site)(**parsing_par, db_connector=self.db_connector)
+
+                result = site_parser.parse()
+
+                if result:
+                    self.status = 'OK'
+                else:
+                    self.status = 'error'
+                    self.error = 'Site parser {} '.format(site) + ' parsing error. ' + site_parser.error
+
+        return new_job_id
 
 
-def refill_cv_collection(parameters, mongo_connection_string):
+def refill_cv_collection(**kwargs):
 
-    parsing_tool = ParsingTool(mongo_uri=mongo_connection_string, parameters=parameters)
-    result = parsing_tool.parse()
+    parsing_tool = ParsingTool(**kwargs)
+    j_id = parsing_tool.parse()
 
-    return parsing_tool.status, parsing_tool.error
+    return j_id, parsing_tool.status, parsing_tool.error
 
 
 if __name__ == '__main__':
 
-    parser = HeadHunterParser()
-    print(parser.base_url)
+    if len(sys.argv) == 4:
+        if sys.argv[1] == '-job':
+
+            job_id = str(uuid.UUID(sys.argv[3]))
+
+            db_connector = MongoDBConnector()
+
+            job_line = db_connector.read_job({'job': sys.argv[2], 'job_id': job_id})
+            error_text = ''
+
+            if job_line and job_line['status'] == 'created':
+
+                job_line['status'] = 'started'
+                db_connector.write_job(job_line, ['job_id', 'job'])
+
+                parsing_parameters = job_line['parameters'].copy()
+
+                error = False
+                if parsing_parameters:
+                    parsing_parameters['db_connector'] = db_connector
+                else:
+                    parsing_parameters = {'db_connector': db_connector}
+                try:
+                    parser = HeadHunterParser(**parsing_parameters)
+                    parser.parse()
+                except Exception as exc:
+                    error = True
+                    error_text = str(traceback.format_exc())
+
+                job_line['status'] = 'error' if error else 'finished'
+                job_line['error'] = error_text
+                db_connector.write_job(job_line, ['job_id', 'job'])
+
+
+
+
+
 

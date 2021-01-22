@@ -1,27 +1,20 @@
 import pymongo
+import settings
+import datetime
 
 
 class MongoDBConnector:
-    def __init__(self, host='', user='', password='', uri=''):
-        if host:
-            self.host = host
-        else:
-            self.host = 'mongo.nfp2b.ml'
+    def __init__(self, **kwargs):
 
-        if user:
-            self.user = user
-        else:
-            self.user = 'admin'  # 'hr-admin'
+        self.settings = kwargs.get('settings') or settings.SettingsController()
+        self.host = kwargs.get('host') or 'mongo.nfp2b.ml'
+        self.user = kwargs.get('user') or 'admin'
+        self.password = kwargs.get('password') or '09hradminS'
 
-        if password:
-            self.password = password
-        else:
-            self.password = '09hradminS'
-        if uri:
-            self.uri = uri
-        else:
-            # self.uri = "mongodb://%s:%s@%s/?authSource=admin" % (quote_plus(self.user), quote_plus(self.password), self.host)
-            self.uri = "mongodb://%s:%s@%s/?authSource=admin" % (self.user, self.password, self.host)
+        self.uri = (kwargs.get('uri') or
+                    self.settings.get_parameter('mongo_uri') or
+                    "mongodb://%s:%s@%s/?authSource=admin" % (self.user, self.password, self.host))
+        self.kwargs = kwargs
 
         self.connection = None
         self.is_connected = False
@@ -30,26 +23,27 @@ class MongoDBConnector:
         self._collections = {}
         self.error = ''
 
-    def connect(self, uri='', host='', user='', password=''):
+    def connect(self, **kwargs):
 
-        if uri != '':
-            self.uri = uri
+        host = kwargs.get('host') or self.host
+        user = kwargs.get('user') or self.user
+        password = kwargs.get('password') or self.password
+        from_host = bool(host and user and password)
+        c_settings = kwargs.get('settings') or self.settings
+        from_settings = kwargs.get('from_settings')
+        if from_settings is None:
+            from_settings = False
+        reconnect = kwargs.get('reconnect')
+        if reconnect is None:
+            reconnect = False
 
-        if host != '':
-            self.host = host
+        uri = (kwargs.get('uri')
+               or self.uri
+               or (from_host and "mongodb://%s:%s@%s/?authSource=admin" % (user, password, host))
+               or (from_settings and c_settings.get_parameter('mongo_uri')))
 
-        if user != '':
-            self.user = user
-
-        if password != '':
-            self.password = password
-
-        if not self.is_connected:
-            if self.uri == '':
-                # self.uri = "mongodb://%s:%s@%s/?authSource=admin" % (quote_plus(user), quote_plus(password), host)
-                self.uri = "mongodb://%s:%s@%s/?authSource=admin" % (user, password, host)
-
-            self.connection = pymongo.MongoClient(self.uri)
+        if reconnect or not self.is_connected:
+            self.connection = pymongo.MongoClient(uri)
             self.is_connected = True
 
         return True
@@ -149,7 +143,10 @@ class MongoDBConnector:
             result = None
         return result
 
-    def write_line(self, collection_name, line, id_columns=[]):
+    def write_line(self, collection_name, line, id_columns=None):
+
+        if not self.is_connected:
+            self.connect()
 
         if not id_columns:
             return self._write_data(collection_name, line)
@@ -170,6 +167,51 @@ class MongoDBConnector:
             result = None
         return result
 
+    def write_job(self, line, id_columns):
+        str_today, timestamp_today = self._get_today()
+        line['date'] = str_today
+        line['timestamp'] = timestamp_today
+
+        self.write_line('jobs', line, id_columns)
+
+    def read_line(self, collection_name, id_filter):
+        if not self.is_connected:
+            self.connect()
+        collection = self._get_collection(collection_name)
+        return collection.find_one(id_filter)
+
+    def read_job(self, id_filter):
+        result = None
+        if id_filter.get('job'):
+            if id_filter.get('job_id'):
+                result = self.read_line('jobs', id_filter)
+            else:
+                if not self.is_connected:
+                    self.connect()
+                collection = self._get_collection('jobs')
+                result = collection.find_one(id_filter, sort=[("timestamp", pymongo.DESCENDING)])
+
+        return result
+
+    def read_jobs(self, job_filter, limit=0):
+
+        lines = []
+        if not self.is_connected:
+            self.connect()
+
+        collection = self._get_collection('jobs')
+
+        finder = collection.find(job_filter, sort=[("timestamp", pymongo.DESCENDING)])
+
+        if limit:
+            finder = finder.limit(limit)
+
+        for line in finder:
+            line.pop('_id')
+            lines.append(line)
+
+        return lines
+
     def _clear_collection(self, collection_name):
         collection = self._get_collection(collection_name)
         if collection:
@@ -177,3 +219,9 @@ class MongoDBConnector:
 
     def _add_error_text_(self, error_text):
         self.error = self.error + ('; ' if self.error else '') + error_text
+
+    @staticmethod
+    def _get_today():
+        today = datetime.datetime.today()
+        return today.strftime("%Y.%m.%d %H:%M:%S"), today.timestamp()
+

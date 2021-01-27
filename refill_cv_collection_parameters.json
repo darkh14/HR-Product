@@ -2,7 +2,16 @@
 "request_type": "refill_cv_collection",
 "job": true,
 "limit": 100,
+"vacancy_id": "8552ae75-60df-11eb-99c3-fa163e8eff0e",
+"db": "Srvr=\"nfp-dev\";Ref=\"smarthumax_dev1\";",
 "parsing_filter": {
-"text": "Программист 1с"
+"texts": [
+"Программист 1с",
+"Разработчик 1с"
+],
+"education": "higher",
+"age_from": 20,
+"age_to": 40,
+"gender": "male"
 }
 }

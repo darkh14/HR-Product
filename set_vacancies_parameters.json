@@ -1,0 +1,27 @@
+{
+"request_type": "set_vacancies",
+"vacancies": [
+{
+"vacancy_id": "a67cec33-121e-11eb-99af-fa163e2af37c",
+"DB": "Srvr=\"nfp-dev\";Ref=\"smarthumax_dev1\";",
+"name": "Системный аналитик - разработчик",
+"position": "Старший бизнес-аналитик",
+"duties": "",
+"unit": "YS",
+"requirements": "Знание принципов програмирования. Знание основных механизмов платформы 1С:Предприятие, СКД, КД. Хорошее знание минимум 2-х типовых конфигураций 1С и общие знание еще 3-х типовых конфигураций",
+"conditions": "",
+"age_from": 0,
+"age_to": 0,
+"education": "Высшее образование",
+"workplace": "",
+"gender": "-",
+"estimated_revenue": 0,
+"work_experience_from": 3,
+"work_experience_to": 6,
+"work_schedule": "Полный день",
+"employment_type": "Полная занятость",
+"contract_type": "На неопределенный срок",
+"organization": "МЕХАНИКА БИЗНЕСА ООО"
+}
+]
+}

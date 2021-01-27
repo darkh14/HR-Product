@@ -23,11 +23,11 @@ class MLProcessor:
                              'skills': {'type': 'array'},
                              'education': {'type': 'array_dict',
                                            'fields': ['final', 'name', 'organization']}}
-        self._vacancy_fields = ['vacancy_id', 'DB', 'code', 'name', 'creation_date', 'position', 'duties',
-                                'searching_parameters', 'unit', 'accordance', 'status', 'status', 'requirements',
-                                'conditions', 'age_from', 'age_to', 'education', 'workplace', 'gender',
-                                'estimated_revenue', 'profile', 'work_experience_from', 'work_experience_to',
-                                'work_schedule', 'employment_type', 'contract_type', 'organization', 'grade']
+        self._vacancy_fields = ['vacancy_id', 'DB', 'name', 'position', 'duties',
+                                'unit', 'requirements', 'conditions', 'age_from', 'age_to', 'education',
+                                'workplace', 'gender', 'estimated_revenue', 'work_experience_from',
+                                'work_experience_to', 'work_schedule', 'employment_type', 'contract_type',
+                                'organization']
         self._cv_vacancy_labels_fields = ['cv_id', 'vacancy_id', 'manager', 'db', 'fits', 'active']
 
         self.threshold = kwargs.get('threshold') or 0.565

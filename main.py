@@ -15,8 +15,6 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 # import tensorflow as tf
 import os
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-filepath = r'C:\Users\Mi\Desktop\КИК.txt'
 
 def t_application(request_type, start_response):
 
@@ -62,9 +60,10 @@ if __name__ == '__main__':
     request_types = list()
     # request_types.append('get_fitting_cvs')
     # request_types.append('get_all_cvs')
+    # request_types.append('set_vacancies')
     # request_types.append('set_cv_vacancy_labels')
-    # request_types.append('refill_cv_collection')
-    request_types.append('check_job_status')
+    request_types.append('refill_cv_collection')
+    # request_types.append('check_job_status')
 
     for request_type in request_types:
         output = t_application(request_type, t_start_response)
@@ -73,13 +72,13 @@ if __name__ == '__main__':
 
         output_dict = json.loads(output_str)
 
-        print(output_dict['status'])
-
         if request_type == 'get_fitting_cvs':
             print(output_dict['fitting_cvs'][0])
         elif request_type == 'get_all_cvs':
             print(output_dict['all_cvs'][0])
         elif request_type == 'refill_cv_collection':
+            print(output_dict)
+        elif request_type == 'set_vacancies':
             print(output_dict)
         elif request_type == 'check_job_status':
             print(output_dict)

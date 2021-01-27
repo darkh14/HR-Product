@@ -8,6 +8,8 @@ import uuid
 import sys
 import subprocess
 import traceback
+from urllib.parse import unquote
+import sys
 
 
 class BaseParser:
@@ -23,7 +25,8 @@ class BaseParser:
 
         self.cv_fields = ['_id', 'address', 'gender', 'salary', 'valuta', 'age', 'position', 'about_me', 'category',
                           'specialization', 'еmployment', 'work_schedule', 'seniority', 'experience',
-                          'skills', 'education_level', 'education', 'resume_link', 'site_id', 'site_url']
+                          'skills', 'education_level', 'education', 'resume_link', 'site_id', 'site_url', 'vacancy_id',
+                          'db']
         self.comp_fields = {'specialization': {'type': 'array'},
                             'seniority': {'type': 'dict', 'fields': ['years', 'months']},
                             'experience': {'type': 'array_dict', 'fields': ['start', 'end', 'timeinterval', 'company',
@@ -35,6 +38,8 @@ class BaseParser:
         self.db_connector = kwargs.get('mongo_connector') or MongoDBConnector()
         self.kwargs = kwargs
         self.job = bool(kwargs.get('job'))
+        self.vacancy_id = kwargs.get('vacancy_id')
+        self.db = kwargs.get('db')
 
     @abstractmethod
     def parse(self, parsing_filter=None):
@@ -103,8 +108,12 @@ class BaseParser:
             field = self.get_site_id(**kwargs)
         elif field_name == 'site_url':
             field = self.get_site_url(**kwargs)
+        elif field_name == 'vacancy_id':
+            field = self.get_vacancy_id(**kwargs)
+        elif field_name == 'db':
+            field = self.get_db(**kwargs)
         else:
-            self.error = 'Field name {} is not allowed'.format(field_name)
+            self.error = "Field name '{}' is not allowed".format(field_name)
 
         return field
 
@@ -182,6 +191,12 @@ class BaseParser:
 
     def get_site_url(self, **kwargs):
         return self.base_url
+
+    def get_vacancy_id(self, **kwargs):
+        return kwargs.get('vacancy_id') or self.vacancy_id
+
+    def get_db(self, **kwargs):
+        return kwargs.get('db') or self.db
 
     @staticmethod
     def months_numbers() -> dict:
@@ -262,15 +277,25 @@ class HeadHunterParser(BaseParser):
         self.base_url = kwargs.get('base_url') or 'https://hh.ru'
         self.url = self.base_url + (kwargs.get('add_url') or '/search/resume')
 
-        self.params = {'exp_period': 'all_time', 'logic': 'normal', 'order_by': 'relevance',
-                       'pos': 'full_text'}
-        self.parsing_filter = kwargs.get('parsing_filter') or {'text': r'Программист 1с'}
+        self.params = []
 
-        self.allowed_filter_fields = ['text', 'exp_period']
-        if self.parsing_filter:
-            for field_name, field_value in self.parsing_filter.items():
-                if field_name in self.allowed_filter_fields:
-                    self.params[field_name] = field_value
+        self._url_params_to_add = {'st': 'resumeSearch',
+                                   'logic': 'normal',
+                                   'pos': 'full_text',
+                                   'exp_period': 'all_time',
+                                   'exp_company_size': 'any'}
+        self.edu_map = {'Не имеет значения': 'none',
+                        'Высшее': 'higher',
+                        'Бакалавр': 'bachelor',
+                        'Магистр': 'master',
+                        'Кандидат наук': 'candidate',
+                        'Доктор наук': 'doctor',
+                        'Незаконченное высшее': 'unfinished_higher',
+                        'Среднее': 'secondary',
+                        'Среднее специальное': 'special_secondary'
+                        }
+        self.parsing_filter = kwargs.get('parsing_filter') or {'text': r'Программист 1с'}
+        self._set_url_params()
 
         self.kwargs.update(kwargs)
 
@@ -284,12 +309,10 @@ class HeadHunterParser(BaseParser):
         counter = 1
         page_counter = 1
 
-        params = self.params.copy()
-
         if parsing_filter:
-            for field_name, field_value in parsing_filter.items():
-                if field_name in self.allowed_filter_fields:
-                    params[field_name] = field_value
+            self._set_url_params(parsing_filter)
+
+        params = self.params.copy()
 
         stop = False
 
@@ -303,6 +326,7 @@ class HeadHunterParser(BaseParser):
 
             if not self.job:
                 print('Page ' + str(page_counter))
+                print(unquote(response.url))
 
             for cv_link in cv_links:
 
@@ -328,7 +352,7 @@ class HeadHunterParser(BaseParser):
             if stop:
                 break
 
-            page_counter +=1
+            page_counter += 1
 
             params = {}
             href_list = root.xpath(
@@ -343,6 +367,53 @@ class HeadHunterParser(BaseParser):
         self.status = 'OK'
 
         return True
+
+    def _set_url_params(self, parsing_filter=None, set_parsing_filter=False):
+
+        if not parsing_filter:
+            parsing_filter = self.parsing_filter
+
+        self.params = []
+
+        text_pars_added = False
+        if parsing_filter.get('texts'):
+            for text_par in parsing_filter.get('texts'):
+                self.params.append(('text', text_par))
+
+                for ad_par, ad_value in self._url_params_to_add.items():
+                    val = self._get_url_param(ad_par, parsing_filter) or ad_value
+                    self.params.append((ad_par, val))
+
+                text_pars_added = True
+
+        for key, value in parsing_filter.items():
+            if not self._url_params_to_add.get(key) or not text_pars_added:
+                par_value = self._get_url_param(key, parsing_filter)
+                self.params.append((key, par_value))
+
+        additional = {'order_by': 'relevance', 'search_period': '0', 'items_on_page': '50', 'no_magic': 'false'}
+
+        for ad_par, ad_val in additional.items():
+            if not parsing_filter.get(ad_par):
+                self.params.append((ad_par, ad_val))
+
+        if set_parsing_filter:
+            self.parsing_filter = parsing_filter
+
+    def _get_url_param(self, param_name, param_dict):
+
+        result = None
+
+        if param_name == 'education':
+            if param_dict.get(param_name):
+                result = self.edu_map.get(param_dict.get(param_name))
+
+        # specialization - to do!
+
+        if not result:
+            result = param_dict.get(param_name)
+
+        return result
 
     def get_position(self, element, **kwargs):
         data = element.xpath(
@@ -629,14 +700,27 @@ class ParsingTool:
         if self.job:
 
             job_name = 'refill_cv_collection'
-            new_line = {'job_id': new_job_id, 'job': job_name, 'status': 'created',
-                        'parameters': parsing_par, 'error': ''}
 
-            self.db_connector.write_job(new_line, ['job_id', 'job'])
+            job_line = self.db_connector.read_job({'job': job_name, 'status': 'started'})
 
-            p = subprocess.Popen(['python', 'cv_parsing.py', '-job', 'refill_cv_collection', new_job_id])
+            if not job_line:
+                new_line = {'job_id': new_job_id, 'job': job_name, 'status': 'created',
+                            'parameters': parsing_par, 'error': ''}
 
-            self.status = 'OK'
+                self.db_connector.write_job(new_line, ['job_id', 'job'])
+
+                if sys.platform == "linux" or sys.platform == "linux2":
+                    command = 'python3'
+                else:
+                    command = 'python'
+
+                p = subprocess.Popen([command, 'cv_parsing.py', '-job', 'refill_cv_collection', new_job_id])
+
+                self.status = 'OK'
+
+            else:
+                self.status = 'error'
+                self.error = 'The job {} is already started and not finished'.format(job_name)
         else:
             for site in self.site_list:
                 site_parser = self.site_parsers.get(site)(**parsing_par, db_connector=self.db_connector)
@@ -670,6 +754,7 @@ if __name__ == '__main__':
             db_connector = MongoDBConnector()
 
             job_line = db_connector.read_job({'job': sys.argv[2], 'job_id': job_id})
+
             error_text = ''
 
             if job_line and job_line['status'] == 'created':

@@ -25,10 +25,13 @@ class SettingsController:
         line = parameter_name + ' = ' + str(getattr(self, parameter_name)) + '\n'
         file.write(line)
 
-    def _read_parameter_from_file_line(self, line: str):
-        parameter_list = line.replace(' ', '').split('=')
-        if len(parameter_list) == 2:
-            setattr(self, parameter_list[0], parameter_list[1])
+    def _read_parameter_from_file_line(self, line):
+        eq_ind = line.find('=')
+        if eq_ind != -1:
+            parameter_name = line[0: eq_ind].strip()
+            parameter_value = line[eq_ind + 1: -1].strip()
+
+            setattr(self, parameter_name, parameter_value)
 
     def get_parameter(self, parameter_name):
         return getattr(self, parameter_name)

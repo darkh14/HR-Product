@@ -14,6 +14,7 @@ class MongoDBConnector:
         self.uri = (kwargs.get('uri') or
                     self.settings.get_parameter('mongo_uri') or
                     "mongodb://%s:%s@%s/?authSource=admin" % (self.user, self.password, self.host))
+
         self.kwargs = kwargs
 
         self.connection = None
@@ -44,6 +45,7 @@ class MongoDBConnector:
 
         if reconnect or not self.is_connected:
             self.connection = pymongo.MongoClient(uri)
+            self.get_hr()
             self.is_connected = True
 
         return True
@@ -64,18 +66,9 @@ class MongoDBConnector:
 
     def get_hr(self):
         if not self.is_db_chosen:
-            db_names = self.get_db_names()
-
-            if not db_names:
-                self._add_error_text_('Db names are not defined')
-                return None
-            if 'hr' in db_names:
-                self.db = self.connection.hr
-                self.is_db_chosen = True
-                return self.db
-            else:
-                self._add_error_text_('"Hr" is not found in Db names')
-                return None
+            self.db = self.connection['hr']
+            self.is_db_chosen = True
+            return self.db
         else:
             return self.db
 
@@ -96,6 +89,19 @@ class MongoDBConnector:
         return self.write_line('cv_vacancy_labels', cv_vacancy_line, ['cv_id', 'vacancy_id', 'manager', 'DB'])
 
     def write_cv_line(self, cv_line):
+        vacancies = []
+        prev_line = self.read_line('cv', {'site_id': cv_line['site_id']})
+
+        if prev_line and prev_line['vacancies']:
+            vacancies = prev_line['vacancies']
+
+        if cv_line['vacancy_id'] and cv_line['db']:
+            vacancies.append({'id': cv_line['vacancy_id'], 'db': cv_line['db']})
+            cv_line.pop('vacancy_id')
+            cv_line.pop('db')
+
+        cv_line['vacancies'] = vacancies
+
         return self.write_line('cv', cv_line, ['site_id'])
 
     def write_cv_vacancy_labels(self, cv_vacancy_labels):
@@ -119,19 +125,9 @@ class MongoDBConnector:
         cur_collection = self._collections.get(collection_name)
 
         if not cur_collection:
-            collection_names = self.get_collection_names()
-
-            if not collection_names:
-                self._add_error_text_('Collection names are not defined')
-                return None
-            if collection_name in collection_names:
-                cur_collection = self.db.get_collection(collection_name)
-                self._collections[collection_name] = cur_collection
-                return cur_collection
-            else:
-                cur_collection = self.db.get_collection(collection_name)
-                self._collections[collection_name] = cur_collection
-                return cur_collection
+            cur_collection = self.db.get_collection(collection_name)
+            self._collections[collection_name] = cur_collection
+            return cur_collection
         else:
             return cur_collection
 

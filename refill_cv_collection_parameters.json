@@ -2,6 +2,8 @@
 "request_type": "refill_cv_collection",
 "job": true,
 "limit": 100,
+"vacancies": [
+{
 "vacancy_id": "8552ae75-60df-11eb-99c3-fa163e8eff0e",
 "db": "Srvr=\"nfp-dev\";Ref=\"smarthumax_dev1\";",
 "parsing_filter": {
@@ -14,4 +16,6 @@
 "age_to": 40,
 "gender": "male"
 }
+}
+]
 }

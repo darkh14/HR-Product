@@ -92,11 +92,20 @@ class MongoDBConnector:
         vacancies = []
         prev_line = self.read_line('cv', {'site_id': cv_line['site_id']})
 
-        if prev_line and prev_line['vacancies']:
-            vacancies = prev_line['vacancies']
+        if prev_line and prev_line.get('vacancies'):
+            vacancies = prev_line.get('vacancies')
 
         if cv_line['vacancy_id'] and cv_line['db']:
-            vacancies.append({'id': cv_line['vacancy_id'], 'db': cv_line['db']})
+
+            need_to_add = True
+            for prev_vacancy in vacancies:
+                if (prev_vacancy.get('vacancy_id') == cv_line.get('vacancy_id')
+                   and prev_vacancy['db'] == cv_line['db']):
+                    need_to_add = False
+                    break
+
+            if need_to_add:
+                vacancies.append({'vacancy_id': cv_line['vacancy_id'], 'db': cv_line['db']})
             cv_line.pop('vacancy_id')
             cv_line.pop('db')
 

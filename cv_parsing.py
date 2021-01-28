@@ -40,6 +40,7 @@ class BaseParser:
         self.job = bool(kwargs.get('job'))
         self.vacancy_id = kwargs.get('vacancy_id')
         self.db = kwargs.get('db')
+        self.sub_process = bool(kwargs.get('sub_process'))
 
     @abstractmethod
     def parse(self, parsing_filter=None):
@@ -324,7 +325,7 @@ class HeadHunterParser(BaseParser):
 
             cv_links = root.xpath("//a[@class='resume-search-item__name']/@href")
 
-            if not self.job:
+            if not self.job and not self.sub_process:
                 print('Page ' + str(page_counter))
                 print(unquote(response.url))
 
@@ -344,7 +345,7 @@ class HeadHunterParser(BaseParser):
                 self.write_cv_data(cv_data)
 
                 self.current_salary_data = None
-                if not self.job:
+                if not self.job and not self.sub_process:
                     print('Cv ' + str(counter) + ': ' + self.current_link)
 
                 counter += 1
@@ -689,11 +690,18 @@ class ParsingTool:
         self.kwargs = kwargs
         self.db_connector = kwargs.get('db_connector') or MongoDBConnector()
         self.parsing_filter = kwargs.get('parsing_filter') or {}
+        self.vacancies = (self.parsing_filter and self.parsing_filter.get('vacancies')) or []
+        self.sub_process = bool(kwargs.get('sub_process'))
 
     def parse(self, **kwargs):
 
-        parsing_par = self.kwargs.copy()
-        parsing_par.update(kwargs)
+        general_parsing_par = self.kwargs.copy()
+        general_parsing_par.update(kwargs)
+
+        vacancies = self.kwargs.get('vacancies') or self.vacancies or []
+
+        if not vacancies:
+            vacancies.append(general_parsing_par)
 
         new_job_id = str(uuid.uuid4())
 
@@ -703,9 +711,11 @@ class ParsingTool:
 
             job_line = self.db_connector.read_job({'job': job_name, 'status': 'started'})
 
+            general_parsing_par['sub_process'] = True
+
             if not job_line:
                 new_line = {'job_id': new_job_id, 'job': job_name, 'status': 'created',
-                            'parameters': parsing_par, 'error': ''}
+                            'parameters': general_parsing_par, 'error': ''}
 
                 self.db_connector.write_job(new_line, ['job_id', 'job'])
 
@@ -722,16 +732,25 @@ class ParsingTool:
                 self.status = 'error'
                 self.error = 'The job {} is already started and not finished'.format(job_name)
         else:
-            for site in self.site_list:
-                site_parser = self.site_parsers.get(site)(**parsing_par, db_connector=self.db_connector)
 
-                result = site_parser.parse()
+            for vacancy_params in vacancies:
 
-                if result:
-                    self.status = 'OK'
-                else:
-                    self.status = 'error'
-                    self.error = 'Site parser {} '.format(site) + ' parsing error. ' + site_parser.error
+                parsing_par = general_parsing_par.copy()
+                parsing_par.pop('vacancies', None)
+                if not parsing_par.get('db_connector'):
+                    parsing_par['db_connector'] = self.db_connector
+                parsing_par.update(vacancy_params)
+
+                for site in self.site_list:
+                    site_parser = self.site_parsers.get(site)(**parsing_par)
+
+                    result = site_parser.parse()
+
+                    if result:
+                        self.status = 'OK'
+                    else:
+                        self.status = 'error'
+                        self.error = 'Site parser {} '.format(site) + ' parsing error. ' + site_parser.error
 
         return new_job_id
 
@@ -770,7 +789,8 @@ if __name__ == '__main__':
                 else:
                     parsing_parameters = {'db_connector': db_connector}
                 try:
-                    parser = HeadHunterParser(**parsing_parameters)
+                    parsing_parameters['job'] = False
+                    parser = ParsingTool(**parsing_parameters)
                     parser.parse()
                 except Exception as exc:
                     error = True

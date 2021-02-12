@@ -1,11 +1,22 @@
 {
-"RequestType": "set_cv_vacancy_labels",
-"MongoConnectionString": "mongodb://Admin:123@34.74.148.6:27017/Admin?authSource=admin",
+"request_type": "set_cv_vacancy_labels",
 "cv_vacancy_labels": [
 {
-"cv_id": "70e79da60005861a760039ed1f51577a573338",
-"vacancy_id": "725e4fda04b111eb99b3fa163e8eff0e",
+"cv_id": "7d0af9b200061472330039ed1f337166634445",
+"vacancy_id": "2680778f-3709-11eb-99bd-fa163e8eff0e",
+"profile_id": "8552ae75-60df-11eb-99c3-fa163e8eff0e",
+"manager": "Zyuz Pavel Aleksandrovich",
 "fits": true,
+"db": "Srvr=\"nfp-dev\";Ref=\"smarthumax_dev1\";",
+"active": true
+},
+{
+"cv_id": "41842251000327d1f50039ed1f39346f5a596d",
+"vacancy_id": "2680778f-3709-11eb-99bd-fa163e8eff0e",
+"profile_id": "8552ae75-60df-11eb-99c3-fa163e8eff0e",
+"manager": "Zyuz Pavel Aleksandrovich",
+"fits": false,
+"db": "Srvr=\"nfp-dev\";Ref=\"smarthumax_dev1\";",
 "active": true
 }
 ]

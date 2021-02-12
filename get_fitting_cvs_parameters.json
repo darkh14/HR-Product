@@ -1,14 +1,91 @@
 {
 "request_type": "get_fitting_cvs",
-"threshold": 0.5,
+"threshold": 0.01,
 "filter": {
-"age_begin": 20,
-"age_end": 40,
-"gender": "m",
-"work_experience_begin": 1,
-"work_experience_end": 3,
-"education": "Высшее образование - специалитет, магистратура",
+"vacancy_id": "2680778f-3709-11eb-99bd-fa163e8eff0e",
+"profile_id": "8552ae75-60df-11eb-99c3-fa163e8eff0e",
+"db": "Srvr=\"nfp-dev\";Ref=\"smarthumax_dev1\";",
 "requirements": "- Опыт разработки на платформе 1С:Предприятие 8\n- Значение управляемого интерфейс – от 2-х лет опыта работы\n- Навык разработки и адаптации решений на базе БСП, хорошее владение СКД\n- Умение работать с чужим кодом (чтение и оптимизация)\n- Опыт работы на проектах внедрения программных продуктов 1С\n- Знание типовые конфигурации\n- Готовность развиваться, изучать предметные области, постоянно повышать уровень компетенций",
-"duties": "- Написание отчетов, обработок. \n- Доработка типовых конфигураций \n-  Участие в проектах по автоматизации на базе программных продуктов 1С:УТ, 1С:ERP, Управление Холдингом, \n- Консолидация, Документооборот и других\n- Доработка нетиповых конфигураций на базе БСП\n- Выполнение разработки по техническому заданию\n- Сопроводительная документация\n"
+"duties": "- Написание отчетов, обработок. \n- Доработка типовых конфигураций \n-  Участие в проектах по автоматизации на базе программных продуктов 1С:УТ, 1С:ERP, Управление Холдингом, \n- Консолидация, Документооборот и других\n- Доработка нетиповых конфигураций на базе БСП\n- Выполнение разработки по техническому заданию\n- Сопроводительная документация\n",
+"texts": [
+"Программист 1С",
+"Программист"
+],
+"education": "Высшее образование",
+"age_from": 20,
+"age_to": 40,
+"salary_from": 135000,
+"salary_to": 165000,
+"seniority_from": 1,
+"seniority_to": 3,
+"gender": "Мужчина",
+"work_schedule": ""
+},
+"filter_rules": [
+{
+"field": "vacancies",
+"filter_field": [
+{
+"field": "vacancy_id",
+"filter_field": "vacancy_id",
+"type": "hard",
+"comp": "eq"
+},
+{
+"field": "db",
+"filter_field": "db",
+"type": "hard",
+"comp": "eq"
 }
+],
+"type": "soft",
+"koef": 0.1
+},
+{
+"field": "about_me",
+"filter_field": "requirements",
+"type": "threshold",
+"comp": "sim"
+},
+{
+"field": "about_me",
+"filter_field": "duties",
+"type": "threshold",
+"comp": "sim"
+},
+{
+"filter_field": "texts",
+"type": "special"
+},
+{
+"filter_field": "education",
+"type": "special",
+"parameter": "hard"
+},
+{
+"filter_field": "age",
+"type": "special",
+"parameter": "hard"
+},
+{
+"filter_field": "salary",
+"type": "special",
+"parameter": "hard"
+},
+{
+"filter_field": "seniority",
+"type": "special",
+"parameter": "hard"
+},
+{
+"filter_field": "gender",
+"type": "special",
+"parameter": "hard"
+},
+{
+"filter_field": "work_schedule",
+"type": "special",
+"parameter": "hard"
+}
+]
 }

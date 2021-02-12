@@ -10,6 +10,7 @@ import subprocess
 import traceback
 from urllib.parse import unquote
 import sys
+from time import sleep
 
 
 class BaseParser:
@@ -26,7 +27,7 @@ class BaseParser:
         self.cv_fields = ['_id', 'address', 'gender', 'salary', 'valuta', 'age', 'position', 'about_me', 'category',
                           'specialization', 'еmployment', 'work_schedule', 'seniority', 'experience',
                           'skills', 'education_level', 'education', 'resume_link', 'site_id', 'site_url', 'vacancy_id',
-                          'db']
+                          'profile_id', 'db']
         self.comp_fields = {'specialization': {'type': 'array'},
                             'seniority': {'type': 'dict', 'fields': ['years', 'months']},
                             'experience': {'type': 'array_dict', 'fields': ['start', 'end', 'timeinterval', 'company',
@@ -38,9 +39,11 @@ class BaseParser:
         self.db_connector = kwargs.get('mongo_connector') or MongoDBConnector()
         self.kwargs = kwargs
         self.job = bool(kwargs.get('job'))
-        self.vacancy_id = kwargs.get('vacancy_id')
-        self.db = kwargs.get('db')
+        self.vacancy_id = kwargs.get('vacancy_id') or ''
+        self.profile_id = kwargs.get('profile_id') or ''
+        self.db = kwargs.get('db') or ''
         self.sub_process = bool(kwargs.get('sub_process'))
+        self.new_job_id = kwargs.get('new_job_id') or ''
 
     @abstractmethod
     def parse(self, parsing_filter=None):
@@ -111,6 +114,8 @@ class BaseParser:
             field = self.get_site_url(**kwargs)
         elif field_name == 'vacancy_id':
             field = self.get_vacancy_id(**kwargs)
+        elif field_name == 'profile_id':
+            field = self.get_profile_id(**kwargs)
         elif field_name == 'db':
             field = self.get_db(**kwargs)
         else:
@@ -195,6 +200,9 @@ class BaseParser:
 
     def get_vacancy_id(self, **kwargs):
         return kwargs.get('vacancy_id') or self.vacancy_id
+
+    def get_profile_id(self, **kwargs):
+        return kwargs.get('profile_id') or self.profile_id
 
     def get_db(self, **kwargs):
         return kwargs.get('db') or self.db
@@ -302,6 +310,9 @@ class HeadHunterParser(BaseParser):
 
         self.current_salary_data = None
         self.current_link = ''
+        self._request_attempts = kwargs.get('request_attempts') or 100
+        self._request_sleep = kwargs.get('request_sleep') or 0.5
+        self._main_sleep = kwargs.get('main_sleep') or 1
 
     def parse(self, parsing_filter=None):
 
@@ -310,16 +321,16 @@ class HeadHunterParser(BaseParser):
         counter = 1
         page_counter = 1
 
+        stop = False
+
         if parsing_filter:
             self._set_url_params(parsing_filter)
 
         params = self.params.copy()
 
-        stop = False
-
         while current_url:
 
-            response = requests.get(current_url, headers=self.headers, params=params)
+            response = self._get_response(current_url, headers=self.headers, params=params)
 
             root = html.fromstring(response.text)
 
@@ -335,7 +346,7 @@ class HeadHunterParser(BaseParser):
                     stop = True
                     break
 
-                response = requests.get(self.base_url + cv_link, headers=self.headers)
+                response = self._get_response(self.base_url + cv_link, headers=self.headers)
                 cv_root = html.fromstring(response.text)
 
                 self.current_link = (self.base_url + cv_link).split('?')[0]
@@ -347,6 +358,16 @@ class HeadHunterParser(BaseParser):
                 self.current_salary_data = None
                 if not self.job and not self.sub_process:
                     print('Cv ' + str(counter) + ': ' + self.current_link)
+
+                if self.sub_process and counter % 10 == 0:
+                    job_line = self.db_connector.read_job({'job': 'refill_cv_collection', 'job_id': self.new_job_id})
+                    if job_line:
+                        job_line['info'] = 'vacancy_id = {0}, db = {1}, cv_processed {2}'.format(self.vacancy_id,
+                                                                                                 self.db, counter)
+                        self.db_connector.write_job(job_line, ['job_id'])
+
+                if self._main_sleep:
+                    sleep(self._main_sleep)
 
                 counter += 1
 
@@ -369,6 +390,22 @@ class HeadHunterParser(BaseParser):
 
         return True
 
+    def _get_response(self, url, headers=None, params=None):
+
+        attempts = self._request_attempts or 1
+
+        response = None
+
+        for _att in range(attempts):
+            try:
+                response = requests.get(url, headers=headers, params=params)
+                break
+            except TimeoutError:
+                if self._request_sleep:
+                    sleep(self._request_sleep)
+
+        return response
+
     def _set_url_params(self, parsing_filter=None, set_parsing_filter=False):
 
         if not parsing_filter:
@@ -377,8 +414,9 @@ class HeadHunterParser(BaseParser):
         self.params = []
 
         text_pars_added = False
-        if parsing_filter.get('texts'):
-            for text_par in parsing_filter.get('texts'):
+        texts = parsing_filter.get('texts')
+        if texts:
+            for text_par in texts:
                 self.params.append(('text', text_par))
 
                 for ad_par, ad_value in self._url_params_to_add.items():
@@ -388,9 +426,10 @@ class HeadHunterParser(BaseParser):
                 text_pars_added = True
 
         for key, value in parsing_filter.items():
-            if not self._url_params_to_add.get(key) or not text_pars_added:
-                par_value = self._get_url_param(key, parsing_filter)
-                self.params.append((key, par_value))
+            if key != 'texts':
+                if not self._url_params_to_add.get(key) or not text_pars_added:
+                    par_value = self._get_url_param(key, parsing_filter)
+                    self.params.append((key, par_value))
 
         additional = {'order_by': 'relevance', 'search_period': '0', 'items_on_page': '50', 'no_magic': 'false'}
 
@@ -712,6 +751,7 @@ class ParsingTool:
             job_line = self.db_connector.read_job({'job': job_name, 'status': 'started'})
 
             general_parsing_par['sub_process'] = True
+            general_parsing_par['new_job_id'] = new_job_id
 
             if not job_line:
                 new_line = {'job_id': new_job_id, 'job': job_name, 'status': 'created',
@@ -732,6 +772,7 @@ class ParsingTool:
                 self.status = 'error'
                 self.error = 'The job {} is already started and not finished'.format(job_name)
         else:
+            result = True
 
             for vacancy_params in vacancies:
 
@@ -742,15 +783,32 @@ class ParsingTool:
                 parsing_par.update(vacancy_params)
 
                 for site in self.site_list:
-                    site_parser = self.site_parsers.get(site)(**parsing_par)
 
-                    result = site_parser.parse()
+                    done = False
+                    parsing_filter = parsing_par.get('parsing_filter')
+                    if parsing_filter:
+                        texts = parsing_filter.get('texts')
+                        if texts:
+                            for text in texts:
+                                copy_filter = parsing_filter.copy()
+                                copy_par = parsing_par.copy()
+                                copy_filter['texts'] = [text]
+                                copy_par['parsing_filter'] = copy_filter
 
-                    if result:
-                        self.status = 'OK'
-                    else:
-                        self.status = 'error'
-                        self.error = 'Site parser {} '.format(site) + ' parsing error. ' + site_parser.error
+                                site_parser = self.site_parsers.get(site)(**copy_par)
+                                result = result and site_parser.parse()
+
+                            done = result
+
+                    if not done:
+                        site_parser = self.site_parsers.get(site)(**parsing_par)
+                        result = result and site_parser.parse()
+
+                if result:
+                    self.status = 'OK'
+                else:
+                    self.status = 'error'
+                    self.error = 'Site parser {} '.format(site) + ' parsing error. ' + site_parser.error
 
         return new_job_id
 
@@ -795,6 +853,8 @@ if __name__ == '__main__':
                 except Exception as exc:
                     error = True
                     error_text = str(traceback.format_exc())
+
+                job_line = db_connector.read_job({'job': sys.argv[2], 'job_id': job_id})
 
                 job_line['status'] = 'error' if error else 'finished'
                 job_line['error'] = error_text

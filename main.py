@@ -14,6 +14,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 # import tensorflow as tf
 import os
+import mongo_connection
 
 
 def t_application(request_type, start_response):
@@ -61,9 +62,11 @@ if __name__ == '__main__':
     # request_types.append('get_fitting_cvs')
     # request_types.append('get_all_cvs')
     # request_types.append('set_vacancies')
+    # request_types.append('set_profiles')
     # request_types.append('set_cv_vacancy_labels')
-    request_types.append('refill_cv_collection')
+    # request_types.append('refill_cv_collection')
     # request_types.append('check_job_status')
+    # request_types.append('delete_jobs')
 
     for request_type in request_types:
         output = t_application(request_type, t_start_response)
@@ -73,7 +76,9 @@ if __name__ == '__main__':
         output_dict = json.loads(output_str)
 
         if request_type == 'get_fitting_cvs':
-            print(output_dict['fitting_cvs'][0])
+            print(len(output_dict['fitting_cvs']))
+            if output_dict['fitting_cvs']:
+                print(output_dict['fitting_cvs'][0])
         elif request_type == 'get_all_cvs':
             print(output_dict['all_cvs'][0])
         elif request_type == 'refill_cv_collection':
@@ -82,4 +87,16 @@ if __name__ == '__main__':
             print(output_dict)
         elif request_type == 'check_job_status':
             print(output_dict)
+        elif request_type == 'delete_jobs':
+            print(output_dict)
+
+    connector = mongo_connection.MongoDBConnector()
+    cv = connector.get_cv()
+
+    edu = []
+    for cv_line in cv.find():
+        if cv_line['address'] not in edu:
+            edu.append(cv_line['address'])
+
+    print(edu)
 

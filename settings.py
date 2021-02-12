@@ -1,6 +1,6 @@
 
 class SettingsController:
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.parameter_names = ['mongo_uri']
         for par in self.parameter_names:
             setattr(self, par, '')

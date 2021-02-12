@@ -1,0 +1,7 @@
+{
+"request_type": "delete_jobs",
+"filter": {
+"job_id": "3b9a45a4-440f-46ae-8176-810bb1bb4f6d",
+"job": "refill_cv_collection"
+}
+}

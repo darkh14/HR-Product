@@ -4,17 +4,25 @@
 "limit": 100,
 "vacancies": [
 {
-"vacancy_id": "8552ae75-60df-11eb-99c3-fa163e8eff0e",
+"vacancy_id": "2680778f-3709-11eb-99bd-fa163e8eff0e",
+"profile_id": "8552ae75-60df-11eb-99c3-fa163e8eff0e",
 "db": "Srvr=\"nfp-dev\";Ref=\"smarthumax_dev1\";",
 "parsing_filter": {
 "texts": [
-"Программист 1с",
+"Программист 1С  / YS",
 "Разработчик 1с"
 ],
 "education": "higher",
 "age_from": 20,
 "age_to": 40,
-"gender": "male"
+"salary_from": 135000,
+"salary_to": 165000,
+"currency_code": "RUR",
+"experience": "between1And3",
+"gender": "male",
+"label": "only_with_gender",
+"schedule": "fullDay",
+"search_period": 3
 }
 }
 ]

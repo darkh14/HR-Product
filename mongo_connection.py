@@ -105,7 +105,11 @@ class MongoDBConnector:
                     break
 
             if need_to_add:
-                vacancies.append({'vacancy_id': cv_line['vacancy_id'], 'db': cv_line['db']})
+                vacancy_dict = {'vacancy_id': cv_line['vacancy_id'], 'db': cv_line['db'],
+                                'profile_id': cv_line.get('profile_id') or ''}
+                vacancies.append(vacancy_dict)
+
+            cv_line.pop('profile_id', '')
             cv_line.pop('vacancy_id')
             cv_line.pop('db')
 
@@ -115,22 +119,44 @@ class MongoDBConnector:
 
     def write_cv_vacancy_labels(self, cv_vacancy_labels):
         for label in cv_vacancy_labels:
-            self.write_line('cv_vacancy_labels', label, ['cv_id', 'vacancy_id', 'manager', 'DB'])
+            self.write_line('cv_vacancy_labels', label, ['cv_id', 'vacancy_id', 'profile_id', 'manager', 'db'])
 
     def write_vacancies(self, dataset):
         for line in dataset:
-            self.write_line('vacancies', line, ['vacancy_id', 'DB'])
+            self.write_line('vacancies', line, ['vacancy_id', 'db'])
+
+    def write_profiles(self, dataset):
+        for line in dataset:
+            self.write_line('profiles', line, ['profile_id', 'db'])
 
     def clear_cv_vacancy_labels(self):
-        self._clear_collection('cv_vacancy_labels')
+        self.clear_collection('cv_vacancy_labels')
 
     def clear_vacancies(self):
-        self._clear_collection('vacancies')
+        self.clear_collection('vacancies')
+
+    def clear_profiles(self):
+        self.clear_collection('profiles')
+
+    def delete_jobs(self, filter):
+        self.delete_lines('jobs', filter)
+
+    def delete_lines(self, collection_name, filter):
+
+        if not self.is_connected:
+            self.connect()
+
+        collection = self._get_collection(collection_name)
+        collection.delete_many(filter)
 
     def clear_cv_vacancies(self):
-        self._clear_collection('vacancy')
+        self.clear_collection('vacancy')
 
     def _get_collection(self, collection_name):
+
+        if not self.is_connected:
+            self.connect()
+
         cur_collection = self._collections.get(collection_name)
 
         if not cur_collection:
@@ -176,6 +202,7 @@ class MongoDBConnector:
         str_today, timestamp_today = self._get_today()
         line['date'] = str_today
         line['timestamp'] = timestamp_today
+        line.setdefault('info', '')
 
         self.write_line('jobs', line, id_columns)
 
@@ -184,6 +211,17 @@ class MongoDBConnector:
             self.connect()
         collection = self._get_collection(collection_name)
         return collection.find_one(id_filter)
+
+    def read_collection(self, collection_name):
+        if not self.is_connected:
+            self.connect()
+        collection = self._get_collection(collection_name)
+
+        result = []
+        for coll_line in collection.find():
+            result.append(coll_line)
+
+        return result
 
     def read_job(self, id_filter):
         result = None
@@ -217,7 +255,7 @@ class MongoDBConnector:
 
         return lines
 
-    def _clear_collection(self, collection_name):
+    def clear_collection(self, collection_name):
         collection = self._get_collection(collection_name)
         if collection:
             collection.drop()

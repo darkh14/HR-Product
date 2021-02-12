@@ -3,6 +3,7 @@ import cv_parsing
 import xml.etree.ElementTree as ET
 import json
 import mongo_connection
+import filter
 
 
 class HTTPProcessor:
@@ -84,7 +85,15 @@ class HTTPProcessor:
                     else:
                         self.status = 'OK'
                 elif self.parameters['request_type'] == 'set_vacancies':
-                    is_set, error = ml.set_vacancies(**self.parameters)  # , mongo_connection_string)
+                    is_set, error = ml.set_vacancies(**self.parameters)
+
+                    if not is_set:
+                        self.status = 'error'
+                        self.error = error
+                    else:
+                        self.status = 'OK'
+                elif self.parameters['request_type'] == 'set_profiles':
+                    is_set, error = ml.set_profiles(**self.parameters)
 
                     if not is_set:
                         self.status = 'error'
@@ -98,21 +107,55 @@ class HTTPProcessor:
                     self.status = status
                     self.error = error
                     self._add_parameter_to_output_('job_id', job_id)
-
                 elif self.parameters['request_type'] == 'check_job_status':
 
                     self.db_connector = mongo_connection.MongoDBConnector()
-                    if self.parameters.get('job'):
-                        id_filter = {'job': self.parameters.get('job')}
-                        if self.parameters.get('filter'):
-                            id_filter.update(self.parameters.get('filter'))
 
-                        limit = self.parameters.get('limit')
-                        job_lines = self.db_connector.read_jobs(id_filter, limit)
+                    id_filter = {}
+                    if self.parameters.get('filter'):
+                        id_filter.update(self.parameters.get('filter'))
 
-                        self._add_parameter_to_output_('jobs', job_lines)
-                        self.status = 'OK'
+                    limit = self.parameters.get('limit')
+                    job_lines = self.db_connector.read_jobs(id_filter, limit)
 
+                    self._add_parameter_to_output_('jobs', job_lines)
+                    self.status = 'OK'
+                elif self.parameters['request_type'] == 'delete_jobs':
+
+                    self.db_connector = mongo_connection.MongoDBConnector()
+
+                    id_filter = {}
+                    if self.parameters.get('filter'):
+                        id_filter.update(self.parameters.get('filter'))
+
+                    self.db_connector.delete_jobs(id_filter)
+
+                    self.status = 'OK' if not self.db_connector.error else 'error'
+                    self.error = self.db_connector.error
+                elif self.parameters['request_type'] == 'set_filter_collection':
+
+                    self.db_connector = mongo_connection.MongoDBConnector()
+
+                    result, error = filter.set_filter_collection(**self.parameters)
+
+                    self.status = 'OK' if not error else 'error'
+                    self.error = error
+                elif self.parameters['request_type'] == 'get_filter_collection':
+
+                    collection, error = filter.get_filter_collection(**self.parameters)
+
+                    self._add_parameter_to_output_('filter_collection', collection)
+
+                    self.status = 'OK' if not error else 'error'
+                    self.error = error
+                elif self.parameters['request_type'] == 'get_filter_collection_names':
+
+                    collection_names, error = filter.get_filter_collection_names(**self.parameters)
+
+                    self._add_parameter_to_output_('collection_names', collection_names)
+
+                    self.status = 'OK' if not error else 'error'
+                    self.error = error
                 else:
                     self.status = 'error'
                     self.error = 'Unknown value of request type ''{}'''.format(self.parameters['request_type'])

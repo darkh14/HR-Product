@@ -45,8 +45,9 @@ class MongoDBConnector:
 
         if reconnect or not self.is_connected:
             self.connection = pymongo.MongoClient(uri)
-            self.get_hr()
             self.is_connected = True
+            self.get_hr()
+
 
         return True
 
@@ -65,6 +66,10 @@ class MongoDBConnector:
             return None
 
     def get_hr(self):
+
+        if not self.is_connected:
+            self.connect()
+
         if not self.is_db_chosen:
             self.db = self.connection['hr']
             self.is_db_chosen = True
@@ -219,6 +224,7 @@ class MongoDBConnector:
 
         result = []
         for coll_line in collection.find():
+            coll_line.pop('_id')
             result.append(coll_line)
 
         return result

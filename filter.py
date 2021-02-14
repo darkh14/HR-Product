@@ -103,8 +103,7 @@ class Filter:
                 for comp_line in compliance_collection:
                     if comp_line.get('name') == value:
                         result = comp_line.get(site)
-                        if not result:
-                            break
+                        break
 
         else:
             self.error = ''
@@ -123,6 +122,17 @@ class Filter:
 
         return collections
 
+    def delete_filter_collection(self, collection_name):
+
+        collection_names = self.get_filter_collection_names()
+
+        if collection_name not in collection_names:
+            self.error = 'Collection ""{}"" is not in existing collections'.format(collection_name)
+            return False
+
+        self.db_connector.clear_collection(collection_name)
+
+        return True
 
 def set_filter_collection(**kwargs):
 
@@ -161,3 +171,15 @@ def get_filter_collection_names(**kwargs):
     collection_names = filter_controller.get_filter_collection_names()
 
     return collection_names, filter_controller.error
+
+def delete_filter_collection(**kwargs):
+
+    filter_controller = Filter(**kwargs)
+    collection_name = kwargs.get('collection_name')
+
+    if not collection_name:
+        return None, 'Parameter ""collection_name"" is not find'
+
+    result = filter_controller.delete_filter_collection(collection_name)
+
+    return result, filter_controller.error

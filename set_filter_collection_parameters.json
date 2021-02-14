@@ -1,0 +1,24 @@
+{
+"request_type": "set_filter_collection",
+"collection_name": "filter_gender_compliance",
+"collection": [
+{
+"name": "male",
+"cv": "Мужчина, Male, Чоловік",
+"_1c": "Мужской",
+"HeadHunter": "male"
+},
+{
+"name": "female",
+"cv": "Женщина, Female, Жінка",
+"_1c": "Женский",
+"HeadHunter": "female"
+},
+{
+"name": "unknown",
+"cv": "",
+"_1c": "НеУказано",
+"HeadHunter": "unknown"
+}
+]
+}

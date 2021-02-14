@@ -1,0 +1,60 @@
+{
+"request_type": "set_filter_collection",
+"collection_name": "filter_education_compliance",
+"collection": [
+{
+"name": "none",
+"cv": ", Образование, Education",
+"_1c": "не заполнено",
+"HeadHunter": "none"
+},
+{
+"name": "higher",
+"cv": "Высшее образование, Higher education,  Вища освіта",
+"_1c": "Высшее образование",
+"HeadHunter": "higher"
+},
+{
+"name": "bachelor",
+"cv": "Высшее образование (Бакалавр), Higher education (bachelor)",
+"_1c": "Высшее образование - бакалавриат",
+"HeadHunter": "bachelor"
+},
+{
+"name": "master",
+"cv": "Высшее образование (Магистр), Higher education (master),  Вища освіта (Магістр)",
+"_1c": "Высшее образование - специалитет, магистратура",
+"HeadHunter": "master"
+},
+{
+"name": "candidate",
+"cv": "Высшее образование (Кандидат наук), Higher education (Candidate of Science)",
+"_1c": "",
+"HeadHunter": "candidate"
+},
+{
+"name": "doctor",
+"cv": "Высшее образование (Доктор наук)",
+"_1c": "Докторантура",
+"HeadHunter": "doctor"
+},
+{
+"name": "unfinished_higher",
+"cv": "Неоконченное высшее образование, Incomplete higher education",
+"_1c": "Неполное высшее образование",
+"HeadHunter": "unfinished_higher"
+},
+{
+"name": "secondary",
+"cv": "Среднее образование, Secondary education",
+"_1c": "Среднее общее образование,",
+"HeadHunter": "secondary"
+},
+{
+"name": "special_secondary",
+"cv": "Среднее специальное образование, Secondary special education",
+"_1c": "",
+"HeadHunter": "special_secondary"
+}
+]
+}

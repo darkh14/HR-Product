@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 import requests
+from absl.testing.parameterized import parameters
 from lxml import html
 from mongo_connection import MongoDBConnector
 import datetime
@@ -11,18 +12,24 @@ import traceback
 from urllib.parse import unquote
 import sys
 from time import sleep
+from filter import Filter
 
 
 class BaseParser:
     __metaclass__ = ABCMeta
+    name = ''
+    enable = False
 
     def __init__(self, **kwargs):
         super().__init__()
-
+        self._set_url(**kwargs)
         self.dataset = list()
         self.status = ''
         self.error = ''
         self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'}
+
+        self.filter_processor = Filter(**kwargs)
+        self.params = {}
 
         self.cv_fields = ['_id', 'address', 'gender', 'salary', 'valuta', 'age', 'position', 'about_me', 'category',
                           'specialization', 'еmployment', 'work_schedule', 'seniority', 'experience',
@@ -42,11 +49,30 @@ class BaseParser:
         self.vacancy_id = kwargs.get('vacancy_id') or ''
         self.profile_id = kwargs.get('profile_id') or ''
         self.db = kwargs.get('db') or ''
-        self.sub_process = bool(kwargs.get('sub_process'))
+        self.sub_process = bool(kwargs.get('sub_process')) or False
         self.new_job_id = kwargs.get('new_job_id') or ''
 
+    def parse(self,  parameters):
+
+        if parameters.get('filter'):
+            self._set_url_params(parameters['filter'])
+
+        self.vacancy_id = parameters.get('vacancy_id') or self.vacancy_id
+        self.profile_id = parameters.get('profile_id') or self.profile_id
+        self.db = parameters.get('db') or self.db
+
+        count = parameters.get('count') or 0
+        limit = parameters.get('limit') or 0
+
+        return self._parse_with_parameters(self.url, self.params, count, limit)
+
     @abstractmethod
-    def parse(self, parsing_filter=None):
+    def _set_url(self, **kwargs):
+        """method for setting url of starting page of parsing. this url transmits to function _parse_with_parameters
+        as parameter"""
+
+    @abstractmethod
+    def _parse_with_parameters(self, url='', request_params=[], count=0, limit=0):
         """method for parsing site and saving result to DB or file"""
 
     def write_cv_data(self, cv_data):
@@ -63,6 +89,15 @@ class BaseParser:
 
     def _write_cv_to_json(self, cv_data):
         self.dataset.append(cv_data)
+
+    def _set_url_params(self, **kwargs):
+
+        self.params = {}
+        parsing_filter = kwargs.get('filter')
+        if parsing_filter:
+            for filter_key, filter_value in parsing_filter.items():
+                self.params[filter_key] = self.filter_processor.get_filter_value(filter_value, filter_key,
+                                                                                 self.__class__.name)
 
     def get_cv_data(self, path_el, **kwargs):
         cv_line = dict()
@@ -281,29 +316,21 @@ class BaseParser:
 
 class HeadHunterParser(BaseParser):
 
+    name = 'HeadHunter'
+    enable = True
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.base_url = kwargs.get('base_url') or 'https://hh.ru'
-        self.url = self.base_url + (kwargs.get('add_url') or '/search/resume')
 
         self.params = []
+        self.parsing_filter = kwargs.get('filter') or {'text': 'Программист 1с'}
 
         self._url_params_to_add = {'st': 'resumeSearch',
                                    'logic': 'normal',
                                    'pos': 'full_text',
                                    'exp_period': 'all_time',
                                    'exp_company_size': 'any'}
-        self.edu_map = {'Не имеет значения': 'none',
-                        'Высшее': 'higher',
-                        'Бакалавр': 'bachelor',
-                        'Магистр': 'master',
-                        'Кандидат наук': 'candidate',
-                        'Доктор наук': 'doctor',
-                        'Незаконченное высшее': 'unfinished_higher',
-                        'Среднее': 'secondary',
-                        'Среднее специальное': 'special_secondary'
-                        }
-        self.parsing_filter = kwargs.get('parsing_filter') or {'text': r'Программист 1с'}
+
         self._set_url_params()
 
         self.kwargs.update(kwargs)
@@ -314,19 +341,19 @@ class HeadHunterParser(BaseParser):
         self._request_sleep = kwargs.get('request_sleep') or 0.5
         self._main_sleep = kwargs.get('main_sleep') or 1
 
-    def parse(self, parsing_filter=None):
+    def _set_url(self, **kwargs):
 
-        current_url = self.url
+        self.base_url = kwargs.get('base_url') or 'https://hh.ru'
+        self.url = self.base_url + (kwargs.get('add_url') or '/search/resume')
 
-        counter = 1
+    def _parse_with_parameters(self, url='', request_params=[], count=0, limit=0):
+
         page_counter = 1
-
         stop = False
 
-        if parsing_filter:
-            self._set_url_params(parsing_filter)
+        current_url = url
 
-        params = self.params.copy()
+        params = request_params.copy() or []
 
         while current_url:
 
@@ -342,7 +369,7 @@ class HeadHunterParser(BaseParser):
 
             for cv_link in cv_links:
 
-                if self.limit and counter > self.limit:
+                if limit and count >= limit:
                     stop = True
                     break
 
@@ -356,20 +383,21 @@ class HeadHunterParser(BaseParser):
                 self.write_cv_data(cv_data)
 
                 self.current_salary_data = None
-                if not self.job and not self.sub_process:
-                    print('Cv ' + str(counter) + ': ' + self.current_link)
 
-                if self.sub_process and counter % 10 == 0:
+                count += 1
+
+                if not self.job and not self.sub_process:
+                    print('Cv ' + str(count) + ': ' + self.current_link)
+
+                if self.sub_process and count % 10 == 0:
                     job_line = self.db_connector.read_job({'job': 'refill_cv_collection', 'job_id': self.new_job_id})
                     if job_line:
                         job_line['info'] = 'vacancy_id = {0}, db = {1}, cv_processed {2}'.format(self.vacancy_id,
-                                                                                                 self.db, counter)
+                                                                                                 self.db, count)
                         self.db_connector.write_job(job_line, ['job_id'])
 
                 if self._main_sleep:
                     sleep(self._main_sleep)
-
-                counter += 1
 
             if stop:
                 break
@@ -388,7 +416,7 @@ class HeadHunterParser(BaseParser):
 
         self.status = 'OK'
 
-        return True
+        return count
 
     def _get_response(self, url, headers=None, params=None):
 
@@ -406,54 +434,20 @@ class HeadHunterParser(BaseParser):
 
         return response
 
-    def _set_url_params(self, parsing_filter=None, set_parsing_filter=False):
+    def _set_url_params(self, parsing_filter=None):
+
+        self.params = {}
 
         if not parsing_filter:
             parsing_filter = self.parsing_filter
 
-        self.params = []
+        self.params.update(self._url_params_to_add)
+        additional = {'order_by': 'relevance', 'items_on_page': '50', 'no_magic': 'false'}
+        self.params.update(additional)
 
-        text_pars_added = False
-        texts = parsing_filter.get('texts')
-        if texts:
-            for text_par in texts:
-                self.params.append(('text', text_par))
-
-                for ad_par, ad_value in self._url_params_to_add.items():
-                    val = self._get_url_param(ad_par, parsing_filter) or ad_value
-                    self.params.append((ad_par, val))
-
-                text_pars_added = True
-
-        for key, value in parsing_filter.items():
-            if key != 'texts':
-                if not self._url_params_to_add.get(key) or not text_pars_added:
-                    par_value = self._get_url_param(key, parsing_filter)
-                    self.params.append((key, par_value))
-
-        additional = {'order_by': 'relevance', 'search_period': '0', 'items_on_page': '50', 'no_magic': 'false'}
-
-        for ad_par, ad_val in additional.items():
-            if not parsing_filter.get(ad_par):
-                self.params.append((ad_par, ad_val))
-
-        if set_parsing_filter:
-            self.parsing_filter = parsing_filter
-
-    def _get_url_param(self, param_name, param_dict):
-
-        result = None
-
-        if param_name == 'education':
-            if param_dict.get(param_name):
-                result = self.edu_map.get(param_dict.get(param_name))
-
-        # specialization - to do!
-
-        if not result:
-            result = param_dict.get(param_name)
-
-        return result
+        for ad_par, ad_val in parsing_filter.items():
+            parameter_value = self.filter_processor.get_filter_value(ad_val, ad_par, self.name)
+            self.params[ad_par] = parameter_value
 
     def get_position(self, element, **kwargs):
         data = element.xpath(
@@ -722,103 +716,167 @@ class ParsingTool:
         self.status = ''
         self.error = ''
 
-        self.site_parsers = {'hh.ru': HeadHunterParser}
-
-        self.site_list = kwargs.get('site_list') or self.site_parsers.keys()
+        self.site_parsers = []
+        self._set_parsers()
+        self.site_list = kwargs.get('site_list') or []
 
         self.kwargs = kwargs
         self.db_connector = kwargs.get('db_connector') or MongoDBConnector()
-        self.parsing_filter = kwargs.get('parsing_filter') or {}
-        self.vacancies = (self.parsing_filter and self.parsing_filter.get('vacancies')) or []
         self.sub_process = bool(kwargs.get('sub_process'))
+
+    def _set_parsers(self):
+
+        self.site_parsers = []
+        for SubClass in BaseParser.__subclasses__():
+            if SubClass.enable:
+                self.site_parsers.append(SubClass)
 
     def parse(self, **kwargs):
 
-        general_parsing_par = self.kwargs.copy()
-        general_parsing_par.update(kwargs)
+        parameters = kwargs.copy()
+        parameter_keys = parameters.keys()
+        if 'job' in parameter_keys:
+            is_job = bool(parameters.get('job'))
+        else:
+            is_job = self.job
 
-        vacancies = self.kwargs.get('vacancies') or self.vacancies or []
+        if is_job:
+            result = self.parse_with_job(parameters)
+        else:
+            result = self.parse_directly(parameters)
 
-        if not vacancies:
-            vacancies.append(general_parsing_par)
+        if result != -1:
+            self.status = 'OK'
+        else:
+            self.status = 'error'
+            self.error = 'Site parser {} parsing error'
+
+        return result
+
+    def parse_with_job(self, parameters):
+
+        job_name = 'refill_cv_collection'
+        old_job_line = self.db_connector.read_job({'job': job_name, 'status': 'started'})
+
+        parsing_par = parameters.copy()
 
         new_job_id = str(uuid.uuid4())
 
-        if self.job:
+        parsing_par['sub_process'] = True
+        parsing_par['new_job_id'] = new_job_id
 
-            job_name = 'refill_cv_collection'
+        if not old_job_line:
+            new_line = {'job_id': new_job_id, 'job': job_name, 'status': 'created', 'parameters': parsing_par,
+                        'error': ''}
 
-            job_line = self.db_connector.read_job({'job': job_name, 'status': 'started'})
+            self.db_connector.write_job(new_line, ['job_id', 'job'])
 
-            general_parsing_par['sub_process'] = True
-            general_parsing_par['new_job_id'] = new_job_id
-
-            if not job_line:
-                new_line = {'job_id': new_job_id, 'job': job_name, 'status': 'created',
-                            'parameters': general_parsing_par, 'error': ''}
-
-                self.db_connector.write_job(new_line, ['job_id', 'job'])
-
-                if sys.platform == "linux" or sys.platform == "linux2":
-                    command = 'python3'
-                else:
-                    command = 'python'
-
-                p = subprocess.Popen([command, 'cv_parsing.py', '-job', 'refill_cv_collection', new_job_id])
-
-                self.status = 'OK'
-
+            if sys.platform == "linux" or sys.platform == "linux2":
+                python_command = 'python3'
             else:
-                self.status = 'error'
-                self.error = 'The job {} is already started and not finished'.format(job_name)
+                python_command = 'python'
+
+            p = subprocess.Popen([python_command, 'cv_parsing.py', '-job', 'refill_cv_collection', new_job_id])
+
+            self.status = 'OK'
+
         else:
-            result = True
-
-            for vacancy_params in vacancies:
-
-                parsing_par = general_parsing_par.copy()
-                parsing_par.pop('vacancies', None)
-                if not parsing_par.get('db_connector'):
-                    parsing_par['db_connector'] = self.db_connector
-                parsing_par.update(vacancy_params)
-
-                for site in self.site_list:
-
-                    done = False
-                    parsing_filter = parsing_par.get('parsing_filter')
-                    if parsing_filter:
-                        texts = parsing_filter.get('texts')
-                        if texts:
-                            for text in texts:
-                                copy_filter = parsing_filter.copy()
-                                copy_par = parsing_par.copy()
-                                copy_filter['texts'] = [text]
-                                copy_par['parsing_filter'] = copy_filter
-
-                                site_parser = self.site_parsers.get(site)(**copy_par)
-                                result = result and site_parser.parse()
-
-                            done = result
-
-                    if not done:
-                        site_parser = self.site_parsers.get(site)(**parsing_par)
-                        result = result and site_parser.parse()
-
-                if result:
-                    self.status = 'OK'
-                else:
-                    self.status = 'error'
-                    self.error = 'Site parser {} '.format(site) + ' parsing error. ' + site_parser.error
+            self.status = 'error'
+            self.error = 'The job {} is already started and not finished'.format(job_name)
 
         return new_job_id
+
+    def parse_directly(self, parameters):
+
+        sites = parameters.get('sites')
+
+        count = parameters.get('count') or 0
+        limit = parameters.get('limit') or 0
+
+        for Parser in self.site_parsers:
+            if sites and Parser.name not in sites:
+                continue
+
+            if limit and count >= limit:
+                break
+
+            site_parameters = parameters.copy()
+            site_parameters['parser'] = Parser(**parameters)
+            site_parameters['count'] = count
+
+            count = self._parse_one_site(site_parameters)
+
+        return count
+
+    def _parse_one_site(self, parameters):
+
+        count = parameters.get('count') or 0
+        limit = parameters.get('limit') or 0
+
+        vacancies = parameters.get('vacancies')
+        if vacancies:
+            for vacancy in vacancies:
+
+                if limit and count >= limit:
+                    break
+                vacancy_parameters = parameters.copy()
+                vacancy_parameters.pop('vacancies')
+                vacancy_parameters['filter'] = vacancy.get('filter')
+                vacancy_parameters['vacancy_id'] = vacancy.get('vacancy_id')
+                vacancy_parameters['profile_id'] = vacancy.get('profile_id')
+                vacancy_parameters['db'] = vacancy.get('db')
+                vacancy_parameters['count'] = count
+
+                count = self._parse_one_vacancy(vacancy_parameters)
+        else:
+            count = self._parse_one_vacancy(parameters)
+
+        return count
+
+    def _parse_one_vacancy(self, parameters):
+
+        parsing_filter = parameters.get('filter')
+
+        count = parameters.get('count') or 0
+        limit = parameters.get('limit') or 0
+
+        if parsing_filter and parsing_filter.get('texts'):
+
+            for text in parsing_filter['texts']:
+
+                if limit and count >= limit:
+                    break
+
+                current_filter = parsing_filter.copy()
+                current_filter.pop('texts')
+                current_filter['text'] = text
+
+                current_parameters = parameters.copy()
+                current_parameters['filter'] = current_filter
+                current_parameters['count'] = count
+
+                count = self._parse_one_text(current_parameters)
+        else:
+            count = self._parse_one_text(parameters)
+
+        return count
+
+    def _parse_one_text(self, parameters):
+
+        site_parser = parameters.get('parser')
+
+        if not site_parser:
+            return False
+
+        return site_parser.parse(parameters)
 
 
 def refill_cv_collection(**kwargs):
 
     parsing_tool = ParsingTool(**kwargs)
-    j_id = parsing_tool.parse()
+    result = parsing_tool.parse(**kwargs)
 
-    return j_id, parsing_tool.status, parsing_tool.error
+    return result, parsing_tool.status, parsing_tool.error
 
 
 if __name__ == '__main__':
@@ -848,8 +906,10 @@ if __name__ == '__main__':
                     parsing_parameters = {'db_connector': db_connector}
                 try:
                     parsing_parameters['job'] = False
+                    parsing_parameters['sub_process'] = True
+
                     parser = ParsingTool(**parsing_parameters)
-                    parser.parse()
+                    parser.parse(**parsing_parameters)
                 except Exception as exc:
                     error = True
                     error_text = str(traceback.format_exc())

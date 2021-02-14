@@ -156,6 +156,12 @@ class HTTPProcessor:
 
                     self.status = 'OK' if not error else 'error'
                     self.error = error
+                elif self.parameters['request_type'] == 'delete_filter_collection':
+
+                    result, error = filter.delete_filter_collection(**self.parameters)
+
+                    self.status = 'OK' if not error else 'error'
+                    self.error = error
                 else:
                     self.status = 'error'
                     self.error = 'Unknown value of request type ''{}'''.format(self.parameters['request_type'])

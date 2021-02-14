@@ -1,0 +1,66 @@
+{
+"request_type": "set_filter_collection",
+"collection_name": "filter_settings",
+"collection": [
+{
+"name": "text",
+"cv": "position, about_me",
+"_1c": "Должность, ФильтрСинонимы.Синоним",
+"HeadHunter": "text"
+},
+{
+"name": "region",
+"cv": "address",
+"_1c": "",
+"HeadHunter": "area"
+},
+{
+"name": "education",
+"cv": "education_level",
+"_1c": "Образование",
+"HeadHunter": "education"
+},
+{
+"name": "age",
+"cv": "age",
+"_1c": "Возраст",
+"HeadHunter": "age"
+},
+{
+"name": "salary",
+"cv": "salary",
+"_1c": "ПредполагаемыйДоход",
+"HeadHunter": "salary"
+},
+{
+"name": "experience",
+"cv": "seniority.years",
+"_1c": "ОпытРаботы",
+"HeadHunter": "experience"
+},
+{
+"name": "gender",
+"cv": "gender",
+"_1c": "ПолФизическогоЛица",
+"HeadHunter": "gender"
+},
+{
+"name": "work_schedule",
+"cv": "work_schedule",
+"_1c": "ГрафикРаботы",
+"HeadHunter": "schedule"
+},
+{
+"name": "search_period",
+"cv": "",
+"_1c": "ПериодПодбора",
+"HeadHunter": "search_period"
+},
+{
+"name": "professional_field",
+"cv": "category, specialization",
+"_1c": "",
+"HeadHunter": "specialization"
+}
+]
+}

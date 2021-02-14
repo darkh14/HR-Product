@@ -1,0 +1,9 @@
+{
+"request_type": "set_filter_collection",
+"collection_name": "filter_sites",
+"collection": [
+{
+"site": "HeadHunter"
+}
+]
+}

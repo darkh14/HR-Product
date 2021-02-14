@@ -64,9 +64,10 @@ if __name__ == '__main__':
     # request_types.append('set_vacancies')
     # request_types.append('set_profiles')
     # request_types.append('set_cv_vacancy_labels')
-    # request_types.append('refill_cv_collection')
+    request_types.append('refill_cv_collection')
     # request_types.append('check_job_status')
     # request_types.append('delete_jobs')
+    # request_types.append('set_filter_collection')
 
     for request_type in request_types:
         output = t_application(request_type, t_start_response)
@@ -87,16 +88,16 @@ if __name__ == '__main__':
             print(output_dict)
         elif request_type == 'check_job_status':
             print(output_dict)
-        elif request_type == 'delete_jobs':
+        elif request_type == 'set_filter_collection':
             print(output_dict)
 
-    connector = mongo_connection.MongoDBConnector()
-    cv = connector.get_cv()
-
-    edu = []
-    for cv_line in cv.find():
-        if cv_line['address'] not in edu:
-            edu.append(cv_line['address'])
-
-    print(edu)
+    # connector = mongo_connection.MongoDBConnector()
+    # cv = connector.get_cv()
+    #
+    # edu = []
+    # for cv_line in cv.find():
+    #     if cv_line['address'] not in edu:
+    #         edu.append(cv_line['address'])
+    #
+    # print(edu)
 

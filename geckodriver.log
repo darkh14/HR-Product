@@ -945,3 +945,18 @@ console.error: services.settings:
 
 ###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
 
+1614626416402	geckodriver	INFO	Listening on 127.0.0.1:56054
+1614626419485	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofiled9MHmT"
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1614626422868	Marionette	INFO	Listening on port 56064
+1614626423165	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+JavaScript warning: https://yastatic.net/partner-code-bundles/13973/0dbf70f19527ae414d0c.js, line 2: unreachable code after return statement
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=23915719, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614626425303	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=23915719, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614626425309	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1614626636766	Marionette	INFO	Stopped listening on port 56064
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+

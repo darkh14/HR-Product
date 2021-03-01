@@ -982,13 +982,13 @@ class RabotaRuParser(BaseParser):
                 years = 0
                 months = 0
                 if len(seniority_list) == 4:
-                    years = seniority_list[0]
-                    months = seniority_list[2]
+                    years = int(seniority_list[0])
+                    months = int(seniority_list[2])
                 elif len(seniority_list) == 2:
                     if seniority_list[1] in ['мес']:
-                        months = seniority_list[0]
+                        months = int(seniority_list[0])
                     else:
-                        years = seniority_list[0]
+                        years = int(seniority_list[0])
                 data = {'years': years, 'months': months}
         else:
             data = {'years': 0, 'months': 0}
@@ -1021,8 +1021,7 @@ class RabotaRuParser(BaseParser):
 
             year_end = work_period[separator + 1:].split(',')[0]
             month_end = work_period[separator:].split(',')[1].replace(' ', '')
-            if len(element.find('p', {'class': 'b-work-period__years'}).getText().replace('\t', '').replace('\n', '')[
-                   separator:].split(',')) == 3:
+            if len(element.find('p', {'class': 'b-work-period__years'}).getText().replace('\t', '').replace('\n', '')[separator:].split(',')) == 3:
 
                 time_interval = {}
                 exp_line = element.find('p', {'class': 'b-work-period__years'}).getText()
@@ -1351,8 +1350,6 @@ if __name__ == '__main__':
                 job_line['status'] = 'error' if error else 'finished'
                 job_line['error'] = error_text
                 db_connector.write_job(job_line, ['job_id', 'job'])
-
-
 
 
 

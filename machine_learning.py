@@ -2,6 +2,8 @@
 
 from mongo_connection import MongoDBConnector
 import difflib
+import re
+from filter import Filter
 
 
 class MLProcessor:
@@ -10,8 +12,6 @@ class MLProcessor:
 
         self.db_connector = kwargs.get('db_connector') or MongoDBConnector()
 
-        self._filter_names = ['age_begin', 'age_end', 'gender', 'work_experience_begin',
-                              'work_experience_end', 'education', 'requirements', 'duties']
         self._cv_fields = ['_id', 'address', 'gender', 'salary', 'valuta', 'age', 'position', 'about_me', 'category',
                            'specialization', 'employment', 'work_schedule', 'seniority', 'experience',
                            'skills', 'education_level', 'education', 'resume_link', 'site_id', 'site_url', 'threshold']
@@ -40,9 +40,11 @@ class MLProcessor:
 
         self._cv_vacancy_labels_fields = ['cv_id', 'vacancy_id', 'profile_id', 'manager', 'db', 'fits', 'active']
 
+        self.filter_processor = Filter(**kwargs)
+
         self.threshold = kwargs.get('threshold') or 0
+        self._filter_names = self.filter_processor.get_filter_names()
         self._filter = self._get_filter(kwargs.get('filter'))
-        self._filter_rules = kwargs.get('filter_rules')
 
         self._clear_vacancies = bool(kwargs.get('clear_vacancies'))
         self._vacancies = self._get_vacancies_from_parameters(kwargs.get('vacancies') or [])
@@ -178,372 +180,150 @@ class MLProcessor:
 
     def _fill_cvs(self, variant='all', **kwargs):
 
-        self.db_connector.connect()
-        if self.db_connector.is_connected:
-            self._cv = self.db_connector.get_cv()
+        self._cv = self.db_connector.get_cv()
 
-            if self._cv:
+        if self._cv:
 
-                count = 1
+            count = 1
 
-                for cv_line in self._cv.find():
+            mongo_filter = self.create_mongo_filter()
 
-                    add = variant == 'all' or variant == 'fitting' and self._cv_need_to_add(cv_line)
-                    if add:
-                        self._add_cv_line(cv_line)
+            cursor = self._cv.find(mongo_filter)
+            if self.limit:
+                cursor = cursor.limit(self.limit)
+            for cv_line in cursor:
+                cv_line.pop('_id')
+                cv_line['threshold'] = self._get_threshold(cv_line)
+                # print(str(count) + ' -- ' + cv_line['position'] + ' -- ' + str(cv_line['threshold']))
+                self._fitting_cv.append(cv_line)
 
-                    count += 1
+                count += 1
 
         self._fitting_cv.sort(key=lambda x: x['threshold'], reverse=True)
 
-        if self.limit:
-            cv_copy = self._fitting_cv.copy()
-            self._fitting_cv.clear()
-            counter = 1
-            for cv_line in cv_copy:
-                if counter <= self.limit:
-                    self._fitting_cv.append(cv_line)
-                else:
-                    break
-                counter += 1
+        count = 1
+        for cv_line in self._fitting_cv:
+            print(str(count) + ' -- ' + cv_line['position'] + ' -- ' + str(cv_line['threshold']))
+            count += 1
 
         return self._fitting_cv
 
-    def _cv_need_to_add(self, cv_line):
+    def create_mongo_filter(self):
+        mongo_filter = {}
+        filter_names = self._filter_names
+        filter_list = []
+        for filter_name in filter_names:
+            filter_element = self._get_field_mongo_filter(filter_name)
+            if filter_element:
+                filter_list.append(filter_element)
+        if len(filter_list) == 1:
+            mongo_filter = filter_list[0]
+        elif len(filter_list) > 1:
+            mongo_filter = {'$and': filter_list}
 
-        result = True
-        av_threshold = 0
-        count = 0
+        return mongo_filter
 
-        for filter_element in self._filter_rules:
-
-            element_result = self._process_filter_element(cv_line, filter_element)
-
-            if element_result == -1:
-                result = False
-                break
-            if element_result != -2:
-                av_threshold += element_result
-
-            count += 1
-
-        if result:
-            result = self.threshold == -1 or (av_threshold/count if count else av_threshold) >= self.threshold
-
-        cv_line['threshold'] = av_threshold/count
-
-        return result
-
-    def _process_filter_element(self, cv_row, filter_element):
-
-        filter_field_par = filter_element.get('filter_field')
-
-        field = cv_row.get(filter_element.get('field'))
-
-        field_desc = self._comp_fields.get(filter_element.get('field'))
-
-        result = 0
-
-        if filter_element.get('type') == 'special':
-            filter_field = self._filter.get(filter_field_par)
-            result = self._process_special_parameter(field, filter_field, filter_element, cv_row)
+    def _get_field_mongo_filter(self, filter_name):
+        mongo_filter = {}
+        if filter_name == 'text':
+            mongo_filter = self._create_text_mongo_filter()
         else:
-            if field_desc:
-                if field_desc['type'] == 'array':
-                    filter_field = self._filter.get(filter_field_par)
-                    result = self._process_array_parameter(field, filter_field, filter_element, field_desc)
-                elif field_desc['type'] == 'dict':
-                    result = self._process_dict_parameter(field, filter_field_par, filter_element)
-                elif field_desc['type'] == 'array_dict':
-                    result = self._process_array_parameter(field, filter_field_par, filter_element, field_desc)
-            else:
-                filter_field = self._filter.get(filter_field_par)
-                result = self._process_simple_parameter(field, filter_field, filter_element)
+            input_filter = self._filter.get(filter_name)
+            if input_filter and input_filter.get('use'):
+                value = self.filter_processor.get_filter_value(input_filter.get('value'), filter_name, 'cv', True)
 
-        if filter_element.get('koef') and result != -1:
-            result *= filter_element['koef']
+                field_name = self.filter_processor.get_filter_value(filter_name, 'settings', 'cv')
 
-        return result
+                if field_name and value:
+                    is_range = isinstance(value[0], dict) and len(value[0]) == 2
+                    if is_range:
+                        filter_gte = {field_name: {'$gte': value[0][filter_name + '_from']}}
+                        filter_lte = {field_name: {'$lte': value[0][filter_name + '_to']}}
+                        mongo_filter = {'$and': [filter_gte, filter_lte]}
+                    elif len(value) == 1:
+                        mongo_filter = {field_name: value[0]}
+                    else:
+                        mongo_filter = {field_name: {'$in': value}}
 
-    def _process_simple_parameter(self, field, filter_field, filter_element):
+        return mongo_filter
 
-        filter_type, filter_comp = filter_element['type'], filter_element['comp']
-        result = 0
+    def _create_text_mongo_filter(self):
+        mongo_filter = {}
 
-        if filter_type == 'hard' or filter_type == 'soft':
+        input_text_filter = self._filter.get('text')
+        if input_text_filter and input_text_filter.get('use'):
+            texts = input_text_filter.get('value')
+            if texts:
+                words = []
+                for text in texts:
+                    text_list = text.strip().split(' ')
+                    for text_word in text_list:
+                        if text_word not in words:
+                            words.append(text_word)
 
-            negative_result = -1 if filter_comp == 'hard' else 0
+                reg_exp_string = ''
+                first = True
+                for word in words:
+                    reg_exp_string += ('' if first else '|') + word
+                    first = False
 
-            if filter_comp == 'eq':
-                result = 1 if field == filter_field else negative_result
-            if filter_comp == 'eq_list':
-                result = 1 if filter_field in field else negative_result
-            if filter_comp == 'ne':
-                result = 1 if field != filter_field else negative_result
-            elif filter_comp == 'lt':
-                result = 1 if field < filter_field else negative_result
-            elif filter_comp == 'gt':
-                result = 1 if field < filter_field else negative_result
-            elif filter_comp == 'le':
-                result = 1 if field <= filter_field else negative_result
-            elif filter_comp == 'ge':
-                result = 1 if field <= filter_field else negative_result
+                reg_exp_string = '.*' + reg_exp_string + '.*'
+                rgx = re.compile(reg_exp_string, re.IGNORECASE)
+                mongo_filter = {'$or': [{'position': {'$regex': rgx}}, {'about_me': {'$regex': rgx}}]}
+                # mongo_filter = {'about_me': {'$regex': rgx}}
 
-        elif filter_type == 'threshold' or filter_type == 'hard_threshold':
+        return mongo_filter
 
-            koef = filter_element.get('koef') or 1
+    def _get_threshold(self, cv_line):
+        threshold = 0
+        for filter_name in self._filter_names:
+            field_threshold = self._get_field_threshold(filter_name, cv_line)
+            if field_threshold != -1:
+                threshold += field_threshold
+        return threshold
 
-            if filter_comp == 'eq':
-                result = 1 if field == filter_field else 0
-            if filter_comp == 'eq_list':
-                result = 1 if filter_field in field else 0
-            if filter_comp == 'ne':
-                result = 1 if field != filter_field else 0
-            elif filter_comp == 'lt':
-                result = 1 if field < filter_field else 0
-            elif filter_comp == 'gt':
-                result = 1 if field < filter_field else 0
-            elif filter_comp == 'le':
-                result = 1 if field <= filter_field else 0
-            elif filter_comp == 'ge':
-                result = 1 if field <= filter_field else 0
-            elif filter_comp == 'sim':
-                result = self._similarity(field, filter_field)
-            elif filter_comp == 'sim_list':
-                result = 0
-                for el_field in field:
-                    result += self._similarity(el_field, filter_field)
-                if len(field):
-                    result /= len(field)
+    def _get_field_threshold(self, filter_name, cv_line):
+        threshold = 0
+        if filter_name == 'text':
 
-            result *= koef
+            if self._filter.get('text'):
 
-            if filter_type == 'hard_threshold':
-                threshold = filter_element.get('threshold') or 0.5
-                result = 1 if result >= threshold else -1
+                fields = self.filter_processor.get_filter_value('text', 'settings', 'cv', True)
 
-        return result
+                count = 1
+                for field in fields:
+                    c_threshold = 0
+                    for text in self._filter['text'].get('value'):
+                        c_threshold += self._similarity(cv_line[field], text)
+                    c_threshold /= len(self._filter['text'])
+                    if count == 1:
+                        c_threshold *= 0.8
+                    elif count == 2:
+                        c_threshold *= 0.2
+                    else:
+                        c_threshold *= 0.1
 
-    def _process_array_parameter(self, field, filter_field, filter_element, field_desc):
+                    threshold += c_threshold
 
-        result_sum = 0
-        count = 1
-
-        for array_element in field:
-
-            if field_desc['type'] == 'array_dict':
-                element_result = self._process_dict_parameter(array_element, filter_field, filter_element)
-            else:
-                element_result = self._process_simple_parameter(array_element, filter_field, filter_element)
-            if element_result == -1:
-                if filter_element.get('type') == 'hard':
-                    result_sum = -1
-                    break
-                else:
                     count += 1
             else:
-                result_sum += element_result
-                count += 1
+                threshold = -1
+        else:
+            input_filter = self._filter.get(filter_name)
+            if input_filter and not input_filter.get('use'):
+                value = self.filter_processor.get_filter_value(input_filter.get('value'), filter_name, 'cv', True)
 
-        if filter_element.get('type') == 'soft':
-            if result_sum == 0:
-                result_sum = -1
-            else:
-                result_sum = 1
-        elif result_sum != -1 :
-            result_sum /= count
+                field_name = self.filter_processor.get_filter_value(filter_name, 'settings', 'cv')
 
-        return result_sum
+                if field_name and value:
+                    is_range = isinstance(value[0], dict) and len(value[0]) == 2
+                    if is_range:
 
-    def _process_dict_parameter(self, field, filter_field, filter_element):
-        result_sum = 0
-
-        for filter_dict_el in filter_element.get('filter_field'):
-            field_element = field.get(filter_dict_el.get('field'))
-            element_result = self._process_simple_parameter(field_element,
-                                                            self._filter.get(filter_dict_el.get('filter_field')),
-                                                            filter_dict_el)
-            if filter_dict_el['type'] == 'hard' and element_result == -1:
-                result_sum = -1
-                break
-            else:
-                result_sum += element_result
-
-        if filter_element.get('type') == 'soft' and result_sum == 0:
-            result_sum = -1
-
-        if result_sum != -1:
-            result_sum = 0 if not filter_element.get('filter_field') else (result_sum /
-                                                                           len(filter_element.get('filter_field')))
-
-        return result_sum
-
-    def _process_special_parameter(self, field, filter_field, filter_element, cv_row):
-
-        result = 0
-        field_name = filter_element.get('filter_field')
-
-        if field_name == 'texts':
-
-            # about_me_list = cv_row['about_me'].lower().split(' ')
-            el_result = 0
-
-            for text in filter_field:
-
-                # position
-                position_result = 0
-                res = self._similarity(cv_row['position'], text)
-                if res > position_result:
-                    position_result = res
-
-                # about_me
-                about_me_result = self._similarity(text, cv_row['about_me'])
-                # about_me_count = 0
-                #
-                # text_list = text.lower().split(' ')
-                # for text_el in text_list:
-                #     about_me_count += about_me_list.count(text_el)
-                #
-                # about_me_result = 0 if about_me_count == 0 else about_me_count/(len(text_list)*len(about_me_list))
-
-                if position_result < 0.7 and about_me_result < 0.2:
-                    result = -1
-                else:
-                    el_result = position_result*0.7 + about_me_result*0.3
-
-                if el_result > result:
-                    result = el_result
-
-        elif field_name == 'education':
-            edu_com = {'Высшее образование': ['Высшее образование', 'Higher education', 'Вища освіта'],
-                       'Адъюнктура': ['Адъюнктура'],
-                       'Аспирантура': ['Аспирантура'],
-                       'Высшее образование - бакалавриат': ['Высшее образование (Бакалавр)',
-                                                            'Higher education (bachelor)'],
-                       'Высшее образование - подготовка кадров высшей квалификации': [],
-                       'Высшее образование - специалитет, магистратура': ['Высшее образование (Магистр)',
-                                                                          'Высшее образование (Магистр)'],
-                       'Докторантура': ['Высшее образование (Доктор наук)'],
-                       'Дополнительное профессиональное образование': [],
-                       'Интернатура': [],
-                       'Начальное профессиональное образование': [],
-                       'Неполное высшее образование': ['Неоконченное высшее образование', 'Incomplete higher education'],
-                       'Ординатура': [],
-                       'Основное общее образование': [],
-                       'Послевузовское образование': [],
-                       'Профессиональное обучение': [],
-                       'Среднее (полное) общее образование': ['Среднее образование','Secondary education'],
-                       'Среднее образование': ['Среднее образование', 'Secondary education'],
-                       'Среднее профессиональное образование': ['Среднее специальное образование',
-                                                                'Secondary special education']}
-
-            edu_list = edu_com.get(filter_field)
-
-            if edu_list:
-                if cv_row['education_level'] in edu_list:
-                    result = 1
-                else:
-                    result = -1 if filter_element.get('parameter') == 'hard' else 0
-            else:
-                result = -1 if filter_element.get('parameter') == 'hard' else 0
-
-        elif field_name == 'age':
-            age_from = self._filter.get('age_from')
-            age_to = self._filter.get('age_to')
-
-            age = int(cv_row['age'])
-            # print(str(age) + '  ' + str(age_from) + ' - ' + str(age_to))
-            if (not age_from or age >= age_from) and (not age_to or age <= age_to):
-                result = 1
-            else:
-                result = -1 if filter_element.get('parameter') == 'hard' else 0
-
-        elif field_name == 'salary':
-
-            age_from = self._filter.get('salary_from')
-            age_to = self._filter.get('salary_to')
-            age = cv_row['salary']
-
-            if (not age_from or age >= age_from) and (not age_to or age <= age_to):
-                result = 1
-            else:
-                result = -1 if filter_element.get('parameter') == 'hard' else 0
-
-        elif field_name == 'seniority':
-
-            seniority_from = self._filter.get('salary_from')
-            seniority_to = self._filter.get('salary_to')
-            seniority = int(cv_row['seniority']['years'])
-
-            if seniority_from == 0 and seniority_to == 0:
-                result = 1 if seniority == 0 else 0
-            elif seniority_from == 0 and seniority_to == 999:
-                result = 1
-            elif seniority_to == 999:
-                result = 1 if seniority >= seniority_from else 0
-            else:
-                result = 1 if seniority_from <= seniority <= seniority_to else 0
-
-            if filter_element.get('parameter') == 'hard' and result == 0:
-                result = -1
-
-        elif field_name == 'gender':
-            f_gender = self._filter.get('gender')
-
-            if f_gender:
-                result = 1 if f_gender == cv_row['gender'] else 0
-            else:
-                result = 1
-
-            if filter_element.get('parameter') == 'hard' and result == 0:
-                result = -1
-
-        elif field_name == 'work_schedule':
-            schedule_list = cv_row['work_schedule'].replace(' ', '').split(',')
-            f_schedule = self._filter.get('work_schedule')
-            if f_schedule:
-                if f_schedule in schedule_list:
-                    result = 1
-                else:
-                    result = 0
-            else:
-                result = 1
-
-            if filter_element.get('parameter') == 'hard' and result == 0:
-                result = -1
-
-        return result
-
-    def _add_cv_line(self, cv_line):
-        cur_line = {}
-        for name in self._cv_fields:
-            comp_field = self._comp_fields.get(name)
-            if name == '_id':
-                cur_line[name] = str(cv_line.get(name))
-            elif comp_field:
-                cv_field = cv_line.get(name)
-                # if cv_field:
-                if comp_field['type'] == 'array':
-                    cur_line[name] = []
-                    if cv_field:
-                        for element in cv_field:
-                            cur_line[name].append(element)
-                elif comp_field['type'] == 'dict':
-                    cur_line[name] = {}
-                    for comp_name in comp_field['fields']:
-                        cur_line[name][comp_name] = cv_field.get(comp_name) if cv_field else ''
-                elif comp_field['type'] == 'array_dict':
-                    cur_line[name] = []
-                    if cv_field:
-                        for element in cv_field:
-                            cur_line_row_element = {}
-                            for comp_name in comp_field['fields']:
-                                cur_line_row_element[comp_name] = element.get(comp_name)
-                            cur_line[name].append(cur_line_row_element)
-            else:
-                cur_line[name] = cv_line.get(name)
-        cur_line['site_id'] = self._get_id_from_link(cur_line['resume_link'])
-        self._fitting_cv.append(cur_line)
+                        threshold = 0.01 if (value[0][filter_name + '_from'] <= cv_line[field_name]
+                                             <= value[0][filter_name + '_to']) else 0
+                    else:
+                        threshold = 0.01 if value[0] == cv_line[field_name] else 0
+        return threshold
 
     @staticmethod
     def _similarity(s1, s2):

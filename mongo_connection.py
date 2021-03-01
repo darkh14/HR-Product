@@ -48,7 +48,6 @@ class MongoDBConnector:
             self.is_connected = True
             self.get_hr()
 
-
         return True
 
     def get_connection(self):
@@ -88,7 +87,8 @@ class MongoDBConnector:
             return None
 
     def get_cv(self):
-        return self._get_collection('cv')
+        cv = self._get_collection('cv')
+        return cv
 
     def write_cv_vacancy_line(self, cv_vacancy_line):
         return self.write_line('cv_vacancy_labels', cv_vacancy_line, ['cv_id', 'vacancy_id', 'manager', 'DB'])

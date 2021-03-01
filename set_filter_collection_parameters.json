@@ -1,24 +1,28 @@
 {
 "request_type": "set_filter_collection",
-"collection_name": "filter_gender_compliance",
+"collection_name": "filter_region_compliance",
 "collection": [
 {
-"name": "male",
-"cv": "Мужчина, Male, Чоловік",
-"_1c": "Мужской",
-"HeadHunter": "male"
+"name": "Moscow",
+"cv": [
+"Москва",
+"Moscow"
+],
+"_1c": "Moscow",
+"HeadHunter": "1",
+"RabotaRu": "",
+"SuperJob": ""
 },
 {
-"name": "female",
-"cv": "Женщина, Female, Жінка",
-"_1c": "Женский",
-"HeadHunter": "female"
-},
-{
-"name": "unknown",
-"cv": "",
-"_1c": "НеУказано",
-"HeadHunter": "unknown"
+"name": "StPetersburg",
+"cv": [
+"Санкт-Петербург",
+"Saint Petersburg"
+],
+"_1c": "StPetersburg",
+"HeadHunter": "2",
+"RabotaRu": "",
+"SuperJob": ""
 }
 ]
 }

@@ -1,18 +1,21 @@
 from abc import ABCMeta, abstractmethod
 import requests
-from absl.testing.parameterized import parameters
+# from absl.testing.parameterized import parameters
 from lxml import html
+from bs4 import BeautifulSoup as bs
 from mongo_connection import MongoDBConnector
 import datetime
 import pandas as pd
 import uuid
-import sys
 import subprocess
 import traceback
 from urllib.parse import unquote
 import sys
 from time import sleep
 from filter import Filter
+
+from selenium import webdriver
+from webdriver_manager.firefox import GeckoDriverManager
 
 
 class BaseParser:
@@ -32,7 +35,7 @@ class BaseParser:
         self.params = {}
 
         self.cv_fields = ['_id', 'address', 'gender', 'salary', 'valuta', 'age', 'position', 'about_me', 'category',
-                          'specialization', 'еmployment', 'work_schedule', 'seniority', 'experience',
+                          'specialization', 'employment', 'work_schedule', 'seniority', 'experience',
                           'skills', 'education_level', 'education', 'resume_link', 'site_id', 'site_url', 'vacancy_id',
                           'profile_id', 'db']
         self.comp_fields = {'specialization': {'type': 'array'},
@@ -51,6 +54,10 @@ class BaseParser:
         self.db = kwargs.get('db') or ''
         self.sub_process = bool(kwargs.get('sub_process')) or False
         self.new_job_id = kwargs.get('new_job_id') or ''
+
+        self._request_attempts = kwargs.get('request_attempts') or 100
+        self._request_sleep = kwargs.get('request_sleep') or 0.5
+        self._main_sleep = kwargs.get('main_sleep') or 1
 
     def parse(self,  parameters):
 
@@ -103,7 +110,11 @@ class BaseParser:
         cv_line = dict()
         for cv_field in self.cv_fields:
             if cv_field != '_id':
-                cv_line[cv_field] = self.get_cv_field(path_el, cv_field, **kwargs)
+                value = self.get_cv_field(path_el, cv_field, **kwargs)
+                cv_line[cv_field] = value
+                if cv_field == 'seniority' and value:
+                    cv_line['seniority_years'] = value.get('years')
+                    cv_line['seniority_months'] = value.get('months')
         return cv_line
 
     def get_cv_field(self, path_el, field_name, **kwargs):
@@ -142,9 +153,9 @@ class BaseParser:
         elif field_name == 'experience':
             field = self.get_experience(path_el, **kwargs)
         elif field_name == 'resume_link':
-            field = self.get_resume_link(**kwargs)
+            field = self.get_resume_link(path_el, **kwargs)
         elif field_name == 'site_id':
-            field = self.get_site_id(**kwargs)
+            field = self.get_site_id(path_el, **kwargs)
         elif field_name == 'site_url':
             field = self.get_site_url(**kwargs)
         elif field_name == 'vacancy_id':
@@ -157,6 +168,22 @@ class BaseParser:
             self.error = "Field name '{}' is not allowed".format(field_name)
 
         return field
+
+    def _get_response(self, url, headers=None, params=None):
+
+        attempts = self._request_attempts or 1
+
+        response = None
+
+        for _att in range(attempts):
+            try:
+                response = requests.get(url, headers=headers, params=params)
+                break
+            except TimeoutError:
+                if self._request_sleep:
+                    sleep(self._request_sleep)
+
+        return response
 
     @abstractmethod
     def get_position(self, element, **kwargs):
@@ -223,11 +250,11 @@ class BaseParser:
         """returns value of education in current cv line"""
 
     @abstractmethod
-    def get_resume_link(self, **kwargs):
+    def get_resume_link(self, element, **kwargs):
         """returns resume link of current cv line"""
 
     @abstractmethod
-    def get_site_id(self, **kwargs):
+    def get_site_id(self, element, **kwargs):
         """returns inner id of current cv line"""
 
     def get_site_url(self, **kwargs):
@@ -337,23 +364,21 @@ class HeadHunterParser(BaseParser):
 
         self.current_salary_data = None
         self.current_link = ''
-        self._request_attempts = kwargs.get('request_attempts') or 100
-        self._request_sleep = kwargs.get('request_sleep') or 0.5
-        self._main_sleep = kwargs.get('main_sleep') or 1
+
 
     def _set_url(self, **kwargs):
 
         self.base_url = kwargs.get('base_url') or 'https://hh.ru'
         self.url = self.base_url + (kwargs.get('add_url') or '/search/resume')
 
-    def _parse_with_parameters(self, url='', request_params=[], count=0, limit=0):
+    def _parse_with_parameters(self, url='', request_params={}, count=0, limit=0):
 
         page_counter = 1
         stop = False
 
         current_url = url
 
-        params = request_params.copy() or []
+        params = request_params.copy() or self.params
 
         while current_url:
 
@@ -417,22 +442,6 @@ class HeadHunterParser(BaseParser):
         self.status = 'OK'
 
         return count
-
-    def _get_response(self, url, headers=None, params=None):
-
-        attempts = self._request_attempts or 1
-
-        response = None
-
-        for _att in range(attempts):
-            try:
-                response = requests.get(url, headers=headers, params=params)
-                break
-            except TimeoutError:
-                if self._request_sleep:
-                    sleep(self._request_sleep)
-
-        return response
 
     def _set_url_params(self, parsing_filter=None):
 
@@ -520,7 +529,6 @@ class HeadHunterParser(BaseParser):
     def get_employment(self, element, **kwargs):
         data = element.xpath(
             "//div[@class='resume-block-container']//div[@class='bloko-gap bloko-gap_bottom']/../p[1]/text()")
-
         data.pop(0)
 
         data = data[0] if data else ''
@@ -545,20 +553,20 @@ class HeadHunterParser(BaseParser):
         c_data = data.copy()
 
         for data_element in c_data:
-            if not data_element.isdigit() and not data_element in not_del_list:
+            if not data_element.isdigit() and data_element not in not_del_list:
                 data.remove(data_element)
 
         result = {}
         if len(data) == 4:
-            result['years'] = data[0]
-            result['months'] = data[2]
+            result['years'] = int(data[0])
+            result['months'] = int(data[2])
         elif len(data) == 2:
-            if data[1] in ['лет', 'год', 'года']:
-                result['years'] = data[0]
+            if data[1] in ['лет', 'год', 'года', 'year', 'years', 'рок']:
+                result['years'] = int(data[0])
                 result['months'] = 0
             else:
                 result['years'] = 0
-                result['months'] = data[0]
+                result['months'] = int(data[0])
         else:
             result['years'] = 0
             result['months'] = 0
@@ -683,7 +691,7 @@ class HeadHunterParser(BaseParser):
 
         return result
 
-    def get_resume_link(self, **kwargs):
+    def get_resume_link(self, element, **kwargs):
 
         cv_link = kwargs.get('cv_link')
 
@@ -692,7 +700,7 @@ class HeadHunterParser(BaseParser):
         else:
             return ''
 
-    def get_site_id(self, **kwargs):
+    def get_site_id(self, element, **kwargs):
 
         cv_link = kwargs.get('cv_link')
 
@@ -700,6 +708,430 @@ class HeadHunterParser(BaseParser):
             return (self.base_url + cv_link).split('?')[0].split('/')[-1]
         else:
             return ''
+
+
+class RabotaRuParser(BaseParser):
+
+    name = 'RabotaRu'
+    enable = True
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.params = []
+        self.parsing_filter = kwargs.get('filter') or {'text': 'Программист 1с'}
+
+        self._url_params_to_add = {'action': 'search', 'area': 'v3_searchResumeByParamsResults', 'p': -2005, 'w': '',
+                  'qot[0]': 3, 'qsa[0][]': 1, 'sf': '', 'st': '', 'cu': 2, 'krl[]': 3, 'af': '', 'at': '', 'sex': '',
+                  'eylo': '', 't2l': '', 'nex': True}
+
+        self._set_url_params()
+        self._web_driver = None
+        self._web_driver_is_set = False
+
+        self.kwargs.update(kwargs)
+        self._page_sleep_interval = 1
+
+        self._gender_age_str = ''
+        self._current_salary_data = None
+        self._education_data = None
+
+    def _set_url(self, **kwargs):
+
+        self.base_url = kwargs.get('base_url') or 'https://www.rabota.ru'
+        self.url = self.base_url + (kwargs.get('add_url') or '/v3_searchResumeByParamsResults.html')
+
+    def _parse_with_parameters(self, url='', request_params={}, count=0, limit=0):
+
+        params = request_params.copy() or []
+
+        response = self._get_response(url, headers=self.headers, params=params)
+
+        if response:
+
+            html_start = bs(response.text, 'lxml')
+            amount_list = html_start.find('div', {'class': 'b-search-res-result'}).getText().split(' ')
+            if amount_list[3] == 'резюме':
+                sum_ = int(amount_list[1] + amount_list[2])
+            else:
+                sum_ = int(amount_list[1])
+
+            pages_count = int(sum_ // 20) + (0 if sum_ % 20 == 0 else 1)
+            pages_limit = int(limit / 20) + (0 if limit % 20 == 0 else 1)
+            if pages_limit:
+                pages_count = min(pages_count, pages_limit)
+
+            if pages_count > 1:
+                html_page = self._get_full_html(response.url, pages_count)
+            else:
+                html_page = response.text
+
+            html = bs(html_page, 'lxml')
+            cv_elements = html.find_all('a', {'class': 'js-follow-link-ignore box-wrapper__resume-name'})
+
+            if cv_elements:
+                for cv_element in cv_elements:
+
+                    if limit and count >= limit:
+                        break
+
+                    url_form = cv_element.get('href')
+
+                    response_form = self._get_response(url_form, self.headers)
+
+                    if not response_form:
+                        continue
+
+                    html_form = bs(response_form.text, 'lxml')
+
+                    cv_data = self.get_cv_data(html_form, cv_link=url_form)
+
+                    self.write_cv_data(cv_data)
+
+                    count += 1
+
+                    if not self.job and not self.sub_process:
+                        print('Cv ' + str(count) + ': ' + url_form)
+
+                    if self.sub_process and count % 10 == 0:
+                        job_line = self.db_connector.read_job({'job': 'refill_cv_collection',
+                                                               'job_id': self.new_job_id})
+                        if job_line:
+                            job_line['info'] = 'vacancy_id = {0}, db = {1}, cv_processed {2}'.format(self.vacancy_id,
+                                                                                                     self.db, count)
+                            self.db_connector.write_job(job_line, ['job_id'])
+
+        if self.write_to == 'json':
+            df = pd.DataFrame(self.dataset)
+            df.to_json('cv.json', orient='records', lines=True, force_ascii=False)
+
+        self.status = 'OK'
+
+        if self._web_driver_is_set:
+            self._web_driver.close()
+
+        return count
+
+    def get_cv_data(self, cv_element, **kwargs):
+
+        result = super(RabotaRuParser, self).get_cv_data(cv_element, **kwargs)
+        self._gender_age_str = ''
+        self._current_salary_data = None
+        self._education_data = None
+
+        return result
+
+    def _set_url_params(self, parsing_filter=None):
+
+        self.params = {}
+
+        if not parsing_filter:
+            parsing_filter = self.parsing_filter
+
+        self.params.update(self._url_params_to_add)
+
+        for ad_par, ad_val in parsing_filter.items():
+            parameter_name = self.filter_processor.get_filter_value(ad_par, 'settings', self.name)
+            parameter_value = self.filter_processor.get_filter_value(ad_val, ad_par, self.name)
+            self.params[parameter_name] = parameter_value
+
+    def _set_web_driver(self):
+        if not self._web_driver_is_set:
+            executable_path = GeckoDriverManager().install()
+            self._web_driver = webdriver.Firefox(executable_path=executable_path)
+            self._web_driver_is_set = True
+
+    def _delete_web_driver(self):
+        if self._web_driver_is_set:
+            self._web_driver.close()
+            self._web_driver_is_set = False
+
+    def _get_full_html(self, url, pages_count):
+
+        self._set_web_driver()
+        self._web_driver.get(url)
+
+        for page_number in range(pages_count - 1):
+            # sleep(self._page_sleep_interval)
+            # elem = self._web_driver.find_elements_by_class_name("resume-search-short-list")[-1] - scroll not always works
+            elem = self._web_driver.find_element_by_xpath(
+                "(//a[@class='js-follow-link-ignore box-wrapper__resume-name'])[last()]") # - more stable
+            elem.click()
+            sleep(self._page_sleep_interval)
+            html_page = self._web_driver.page_source
+            root = html.fromstring(html_page)
+            elements = root.xpath("//a[@class='js-follow-link-ignore box-wrapper__resume-name']")
+            print('Lines loaded: {}'.format(len(elements)))
+
+        result = self._web_driver.page_source
+
+        self._delete_web_driver()
+
+        return result
+
+    def get_position(self, element, **kwargs):
+        data = element.find('span', {'class': 'text_24 bold position-name'}).getText()\
+            .replace('\t', '').replace('\n', '')
+
+        return data
+
+    def get_address(self, element, **kwargs):
+        data = element.find('p', {'class': 'b-city-info mt_10'}).getText()
+
+        return data
+
+    def get_gender(self, element, **kwargs):
+        if not self._gender_age_str:
+            self._gender_age_str = element.find('p', {'class': 'b-sex-age'}).getText().replace('\t', '').replace('\n', '')
+        if len(self._gender_age_str.split(',')) > 1:
+            data = self._gender_age_str[8:]
+        else:
+            data = self._gender_age_str
+
+        return data
+
+    def get_age(self, element, **kwargs):
+        if not self._gender_age_str:
+            self._gender_age_str = element.find('p', {'class': 'b-sex-age'}).getText().replace('\t', '').replace('\n', '')
+        if len(self._gender_age_str.split(',')) > 1:
+            data = int(self._gender_age_str[:2])
+        else:
+            data = 0
+
+        return data
+
+    def set_salary_data(self, element):
+
+        salary = ''
+        valuta = ''
+
+        if (element.find('span', {'class': 'text_24 salary nobr'}).getText() and
+                element.find('span', {'class': 'text_24 salary nobr'}).getText() != 'по договоренности'):
+
+            salary_split = element.find('span', {'class': 'text_24 salary nobr'}).getText().split(' ')
+            valuta = salary_split[-1].replace('.', '')
+
+            for i in range(len(salary_split) - 1):
+                salary += salary_split[i]
+
+        if salary:
+            salary = int(salary)
+        else:
+            salary = 0
+
+        self._current_salary_data = {'salary': salary, 'currency': valuta}
+
+        return self._current_salary_data
+
+    def get_salary(self, element, **kwargs):
+        if not self._current_salary_data:
+            self.set_salary_data(element)
+
+        return self._current_salary_data['salary']
+
+    def get_valuta(self, element, **kwargs):
+        if not self._current_salary_data:
+            self.set_salary_data(element)
+
+        return self._current_salary_data['currency']
+
+    def get_about_me(self, element, **kwargs):
+
+        if element.find('p', {'class': 'mt_4 p-res-qua lh_20 aboutme-info'}):
+            data = element.find('p', {'class': 'mt_4 p-res-qua lh_20 aboutme-info'}).getText()\
+                .replace('\t','').replace('\n','')
+        else:
+            data = ''
+
+        return data
+
+    def get_category(self, element, **kwargs):
+        data = ''
+
+        return data
+
+    def get_specialization(self, element, **kwargs):
+
+        if element.find('p', {'class': 'mb_10 lh_20'}):
+            data = element.find('p', {'class': 'mb_10 lh_20'}).getText().replace('\t', '')\
+                .replace('\n', '').split(',')
+        else:
+            data = ''
+
+        return data
+
+    def get_employment(self, element, **kwargs):
+        data = element.find('div', {'class': 'pt12 lh_20 p-fs16 td2'}).getText().replace('\t', '')\
+            .replace('\n', '').split('.')[0]
+        return data
+
+    def get_work_schedule(self, element, **kwargs):
+        data = element.find('div', {'class': 'pt12 lh_20 p-fs16 td2'}).getText()\
+            .replace('\t', '').replace('\n', '')
+
+        return data
+
+    def get_seniority(self, element, **kwargs):
+
+        if element.find('span', {'class': 'text_18 bold exp-years'}):
+            seniority_str = element.find('span', {'class': 'text_18 bold exp-years'}).getText()
+            if seniority_str.lower() == 'нет опыта':
+                data = {'years': 0, 'months': 0}
+            else:
+                seniority_list = seniority_str.split(' ')
+                years = 0
+                months = 0
+                if len(seniority_list) == 4:
+                    years = seniority_list[0]
+                    months = seniority_list[2]
+                elif len(seniority_list) == 2:
+                    if seniority_list[1] in ['мес']:
+                        months = seniority_list[0]
+                    else:
+                        years = seniority_list[0]
+                data = {'years': years, 'months': months}
+        else:
+            data = {'years': 0, 'months': 0}
+
+        return data
+
+    def get_experience(self, element, **kwargs):
+        result = []
+        blocks = element.find_all('div', {'class': 'res-card-tbl-row'})
+        for block in blocks:
+            record = self.get_experience_record(block)
+            if record:
+                result.append(record)
+
+        return result
+
+    def get_experience_record(self, element):
+        exp_dict = {}
+        if element.find('div', {'class': 'b-work-period'}):  # Потому что по мудацки названы классы
+            # Парсим по мудацки собранный период работы
+            work_period = element.find('p', {'class': 'b-work-period__years'}).getText().replace('\t', '')\
+                .replace('\n', '')
+            separator = work_period.find('—')
+
+            year_start = work_period[:separator].split(',')[0]
+            month_start = work_period[:separator].split(',')[1].replace(' ', '')
+            month_end_number = self.months_numbers().get(month_start.lower())
+
+            exp_dict['start'] = '01' + '-' + str(month_end_number) + '-' + str(year_start)
+
+            year_end = work_period[separator + 1:].split(',')[0]
+            month_end = work_period[separator:].split(',')[1].replace(' ', '')
+            if len(element.find('p', {'class': 'b-work-period__years'}).getText().replace('\t', '').replace('\n', '')[
+                   separator:].split(',')) == 3:
+
+                time_interval = {}
+                exp_line = element.find('p', {'class': 'b-work-period__years'}).getText()
+                exp_line = exp_line.replace('\t', '').replace('\n', '')[separator:].split(',')[2]
+
+                sep_months = exp_line.find('м')
+                if exp_line.find('г') < 0 and exp_line.find('л') < 0:
+                    time_interval['years'] = 0
+                else:
+                    time_interval['years'] = int(exp_line[:3].replace(' ', ''))
+
+                if exp_line.find('мес') < 0:
+                    time_interval['months'] = 0
+                else:
+                    time_interval['months'] = int(exp_line[sep_months - 3:len(exp_line) - 3].replace(' ', ''))
+
+            else:
+                time_interval = {'years': 0, 'months': 0}
+
+            month_end_number = self.months_numbers().get(month_end.lower())
+            exp_dict['end'] = '01' + '-' + str(month_end_number) + '-' + str(year_end)
+            exp_dict['timeinterval'] = time_interval
+            if element.find('p', {'class': 'company-name'}):
+                exp_dict['company'] = element.find('p', {'class': 'company-name'}).getText().replace('\t', '')\
+                    .replace('\n', '').replace('\"', '')
+            else:
+                exp_dict['company'] = ''
+
+            exp_dict['position'] = element.find('p', {'class': 'last-position-name'}).getText().replace('\t', '')\
+                .replace('\n', '')
+            if element.find('p', {'class': 'lh_20 p-res-exp'}):
+                exp_dict['description'] = element.find('p', {'class': 'lh_20 p-res-exp'}).getText()\
+                    .replace('\t', '').replace('\n', '')
+            else:
+                exp_dict['description'] = ''
+
+        return exp_dict
+
+    def get_skills(self, element, **kwargs):
+        data = []
+        return data
+
+    def get_education_level(self, element, **kwargs):
+        if not self._education_data:
+            self._get_education_data(element)
+
+        return self._education_data['level']
+
+    def get_education(self, element, **kwargs):
+        if not self._education_data:
+            self._get_education_data(element)
+
+        return self._education_data['data']
+
+    def _get_education_data(self, element):
+
+        data = []
+        blocks = element.find_all('div', {'class': 'td2 pt12'})
+        education_level = ''
+        for block in blocks:
+            record, level = self.get_education_record(block)
+            if level:
+                education_level = level
+            if record:
+                data.append(record)
+
+        result = {'data': data, 'level': education_level}
+
+        self._education_data = result
+
+        return result
+
+    @staticmethod
+    def get_education_record(element):
+        education_level = ''
+        ed_dict = {}
+        if element.find('span', {'class': 'edu-type-info'}):  # Потому что по мудацки названы классы
+            if element.find('span', {'class': 'mt_5 lh_20 edu-type-info'}):
+                ed_dict['final'] = element.find('span', {'class': 'mt_5 lh_20 edu-type-info'}).getText()\
+                    .replace('\t', '').replace('\n', '')
+            else:
+                ed_dict['final'] = ''
+            if element.find('span', {'class': 'edu-type-info'}):
+                ed_dict['name'] = element.find('span', {'class': 'edu-type-info'}).getText()\
+                    .replace('\t', '').replace('\n', '').replace('\"', '')
+            else:
+                ed_dict['name'] = ''
+
+            ed_dict['organization'] = ''  # нет
+            ed_dict['specialization'] = ''  # нет
+
+            if element.previous.previous.previous == 'Основное образование':
+                education_level = element.find('span', {'class': 'bold edu-type'}).getText().\
+                    replace('\t', '').replace('\n', '').replace(',', '')
+
+        return ed_dict, education_level
+
+    def get_resume_link(self, element, **kwargs):
+
+        cv_link = kwargs.get('cv_link')
+
+        if cv_link:
+            return cv_link.split('?')[0]
+        else:
+            return ''
+
+    def get_site_id(self, element, **kwargs):
+
+        return element.find('div', {'class': 'b-invite-line__info'}).getText()[12:20]
 
 
 class ParsingTool:

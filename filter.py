@@ -92,22 +92,35 @@ class Filter:
 
         return result
 
-    def get_filter_value(self, value, filter_name, site):
+    def get_filter_value(self, value, filter_name, site, as_list=False):
 
         result = value
 
         sites = self._get_sites()
-        if site in sites:
-            if self._filter_collection_exists('filter_' + filter_name + '_compliance'):
-                compliance_collection = self.get_filter_collection('filter_' + filter_name + '_compliance')
-                for comp_line in compliance_collection:
-                    if comp_line.get('name') == value:
-                        result = comp_line.get(site)
+        if site in sites or site == 'cv':
+            if filter_name == 'settings':
+                filter_collection = self.get_filter_collection('filter_' + filter_name)
+            elif self._filter_collection_exists('filter_' + filter_name + '_compliance'):
+                filter_collection = self.get_filter_collection('filter_' + filter_name + '_compliance')
+            else:
+                filter_collection = None
+
+            if filter_collection:
+                for filter_line in filter_collection:
+                    if filter_line.get('name') == value:
+                        result = filter_line.get(site)
                         break
 
         else:
             self.error = ''
             result = None
+
+        if as_list:
+            if result:
+                if not isinstance(result, list):
+                    result = [result]
+            else:
+                result = []
 
         return result
 
@@ -121,6 +134,19 @@ class Filter:
                 collections.append(name)
 
         return collections
+
+    def get_filter_names(self):
+
+        if not self._check_collection('filter_settings'):
+            return []
+
+        settings_collection = self.db_connector.read_collection('filter_settings')
+
+        filter_names = []
+        for settings_line in settings_collection:
+            if settings_line.get('name'):
+                filter_names.append(settings_line['name'])
+        return filter_names
 
     def delete_filter_collection(self, collection_name):
 

@@ -1,7 +1,8 @@
 {
 "request_type": "refill_cv_collection",
 "job": false,
-"limit": 10,
+"limit": 10000,
+"sites": ["RabotaRu"],
 "vacancies": [
 {
 "vacancy_id": "2680778f-3709-11eb-99bd-fa163e8eff0e",
@@ -13,8 +14,7 @@
 "Разработчик 1с"
 ],
 "education": "higher",
-"gender": "male",
-"label": "only_with_gender"
+"gender": "male"
 }
 }
 ]

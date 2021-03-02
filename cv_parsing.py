@@ -837,7 +837,7 @@ class RabotaRuParser(BaseParser):
 
     def _set_web_driver(self):
         if not self._web_driver_is_set:
-            executable_path = GeckoDriverManager().install()
+            executable_path = GeckoDriverManager(print_first_line=False).install()
             self._web_driver = webdriver.Firefox(executable_path=executable_path)
             self._web_driver_is_set = True
 
@@ -861,7 +861,15 @@ class RabotaRuParser(BaseParser):
             html_page = self._web_driver.page_source
             root = html.fromstring(html_page)
             elements = root.xpath("//a[@class='js-follow-link-ignore box-wrapper__resume-name']")
-            print('Lines loaded: {}'.format(len(elements)))
+            if not self.job and not self.sub_process:
+                print('Lines loaded: {}'.format(len(elements)))
+            if self.sub_process and page_number % 10 == 0:
+                job_line = self.db_connector.read_job({'job': 'refill_cv_collection',
+                                                       'job_id': self.new_job_id})
+                if job_line:
+                    job_line['info'] = 'vacancy_id = {0}, db = {1}, cv_html_loaded {2}'\
+                        .format(self.vacancy_id, self.db, len(elements))
+                    self.db_connector.write_job(job_line, ['job_id'])
 
         result = self._web_driver.page_source
 
@@ -983,11 +991,14 @@ class RabotaRuParser(BaseParser):
                 months = 0
                 if len(seniority_list) == 4:
                     years = int(seniority_list[0])
-                    months = int(seniority_list[2])
+                    if seniority_list[2] == 'и':
+                        months = 0
+                    else:
+                        months = int(seniority_list[2])
                 elif len(seniority_list) == 2:
                     if seniority_list[1] in ['мес']:
                         months = int(seniority_list[0])
-                    else:
+                    elif seniority_list[0] != 'Менее':
                         years = int(seniority_list[0])
                 data = {'years': years, 'months': months}
         else:

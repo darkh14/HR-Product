@@ -1,6 +1,6 @@
 {
 "request_type": "refill_cv_collection",
-"job": false,
+"job": true,
 "limit": 10000,
 "sites": ["RabotaRu"],
 "vacancies": [

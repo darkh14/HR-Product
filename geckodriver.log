@@ -960,3 +960,327 @@ JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?acti
 
 ###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
 
+1614709751956	geckodriver	INFO	Listening on 127.0.0.1:58467
+1614709755006	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofileXN8iH2"
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1614709758925	Marionette	INFO	Listening on port 58475
+1614709759194	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=23915719, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614709761428	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1614709761433	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1614710202560	Marionette	INFO	Stopped listening on port 58475
+4710166092	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofile1smgEO"
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1614710170204	Marionette	INFO	Listening on port 59037
+1614710170335	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+JavaScript warning: https://yastatic.net/partner-code-bundles/14000/f102453f4b60ec4c1994.js, line 2: unreachable code after return statement
+1614710172772	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=23915719, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614710172804	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1614710173154	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710267083	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710275443	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710277449	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710279409	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710281438	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710283476	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710285519	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710287484	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710291470	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710293481	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710295455	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710297431	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710299381	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710301411	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710303407	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710305366	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710307368	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710309417	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710311492	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710313475	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710325758	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710380298	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710384574	Marionette	INFO	Stopped listening on port 59037
+1614710588729	geckodriver	INFO	Listening on 127.0.0.1:60222
+1614710591778	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofilexoPBl6"
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1614710598855	Marionette	INFO	Listening on port 60231
+1614710599253	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=23915719, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614710602188	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=23915719, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614710602213	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1614710808493	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710812065	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710820090	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710823922	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710829194	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614710832263	Marionette	INFO	Stopped listening on port 60231
+1614711055389	geckodriver	INFO	Listening on 127.0.0.1:60962
+1614711058467	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofileuHlG5S"
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1614711063417	Marionette	INFO	Listening on port 60971
+1614711063812	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+JavaScript warning: https://yastatic.net/partner-code-bundles/13999/73730b9a24f80f13c338.js, line 2: unreachable code after return statement
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=23915719, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614711066608	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=23915719, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614711066611	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1614711281665	Marionette	INFO	Stopped listening on port 60971
+1614711463820	geckodriver	INFO	Listening on 127.0.0.1:61681
+1614711466901	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofileXPnEqi"
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1614711472563	Marionette	INFO	Listening on port 61693
+1614711472742	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+1614711475836	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=23915719, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614711475840	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1614711625374	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614711670786	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614711705209	Marionette	INFO	Stopped listening on port 61693
+1614711815164	geckodriver	INFO	Listening on 127.0.0.1:62300
+1614711818261	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofileq8UOau"
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1614711823467	Marionette	INFO	Listening on port 62313
+1614711823601	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+JavaScript warning: https://yastatic.net/partner-code-bundles/13997/f4489aafd293f6e239fa.js, line 2: unreachable code after return statement
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=23915719, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614711826949	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=23915719, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614711826952	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1614711827764	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614711982376	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614712027656	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614712034886	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614712047263	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614712061857	Marionette	INFO	Stopped listening on port 62313
+1614712200656	geckodriver	INFO	Listening on 127.0.0.1:62962
+1614712203709	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofileFfVoSm"
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1614712208732	Marionette	INFO	Listening on port 62972
+1614712209329	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+JavaScript warning: https://yastatic.net/partner-code-bundles/14004/014bb106dcbf371fa710.js, line 2: unreachable code after return statement
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=23915719, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614712215007	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=23915719, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614712215009	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1614712350553	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614712382116	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614712417940	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614712422182	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614712441474	Marionette	INFO	Stopped listening on port 62972
+1614713184642	geckodriver	INFO	Listening on 127.0.0.1:50575
+1614713187703	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofileEVCj99"
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1614713192808	Marionette	INFO	Listening on port 50586
+1614713193035	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+JavaScript warning: https://yastatic.net/partner-code-bundles/14004/014bb106dcbf371fa710.js, line 2: unreachable code after return statement
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%A0%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%87%D0%B8%D0%BA+1%D1%81&id=14601133, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614713195180	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%A0%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%87%D0%B8%D0%BA+1%D1%81&id=14601133, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614713195181	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1614713200466	Marionette	INFO	Stopped listening on port 50586
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1614713387343	geckodriver	INFO	Listening on 127.0.0.1:50951
+1614713390385	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofile4t6tcm"
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1614713394594	Marionette	INFO	Listening on port 50959
+1614713394703	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=23915719, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614713397082	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1614713397175	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1614713397494	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614713615212	Marionette	INFO	Stopped listening on port 50959
+1614714342267	geckodriver	INFO	Listening on 127.0.0.1:54931
+1614714345330	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofilef6VLiW"
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1614714349732	Marionette	INFO	Listening on port 54940
+1614714350145	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+JavaScript warning: https://yastatic.net/partner-code-bundles/13995/16044240e1786c71c00e.js, line 2: unreachable code after return statement
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%A0%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%87%D0%B8%D0%BA+1%D1%81&id=14601133, line 22: SyntaxError: '' string literal contains an unescaped line break
+1614714352858	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1614714352865	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1614714353716	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1614714358760	Marionette	INFO	Stopped listening on port 54940
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+

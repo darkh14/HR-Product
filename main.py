@@ -49,6 +49,7 @@ def make_parameters_string_from_json(request_type):
     parameters_string = p_file.read()
     return parameters_string
 
+
 def t_start_response(status, headers):
     pass
 

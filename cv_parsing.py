@@ -16,6 +16,7 @@ from filter import Filter
 
 from selenium import webdriver
 from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 
 
 class BaseParser:
@@ -344,7 +345,7 @@ class BaseParser:
 class HeadHunterParser(BaseParser):
 
     name = 'HeadHunter'
-    enable = True
+    enable = False
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -730,7 +731,7 @@ class RabotaRuParser(BaseParser):
         self._web_driver_is_set = False
 
         self.kwargs.update(kwargs)
-        self._page_sleep_interval = 1
+        self._page_sleep_interval = 2
 
         self._gender_age_str = ''
         self._current_salary_data = None
@@ -838,7 +839,13 @@ class RabotaRuParser(BaseParser):
     def _set_web_driver(self):
         if not self._web_driver_is_set:
             executable_path = GeckoDriverManager(print_first_line=False).install()
-            self._web_driver = webdriver.Firefox(executable_path=executable_path)
+
+            options = webdriver.FirefoxOptions()
+            options.add_argument('--headless')
+
+            self._web_driver = webdriver.Firefox(executable_path=executable_path,
+                                                 # log_path='/home/mladmin/smt/geckodriver.log',
+                                                 options=options)
             self._web_driver_is_set = True
 
     def _delete_web_driver(self):
@@ -854,10 +861,13 @@ class RabotaRuParser(BaseParser):
         for page_number in range(pages_count - 1):
             # sleep(self._page_sleep_interval)
             # elem = self._web_driver.find_elements_by_class_name("resume-search-short-list")[-1] - scroll not always works
+
+            sleep(self._page_sleep_interval)
+
             elem = self._web_driver.find_element_by_xpath(
                 "(//a[@class='js-follow-link-ignore box-wrapper__resume-name'])[last()]") # - more stable
             elem.click()
-            sleep(self._page_sleep_interval)
+
             html_page = self._web_driver.page_source
             root = html.fromstring(html_page)
             elements = root.xpath("//a[@class='js-follow-link-ignore box-wrapper__resume-name']")
@@ -1256,6 +1266,7 @@ class ParsingTool:
         limit = parameters.get('limit') or 0
 
         vacancies = parameters.get('vacancies')
+
         if vacancies:
             for vacancy in vacancies:
 
@@ -1354,7 +1365,7 @@ if __name__ == '__main__':
                     parser.parse(**parsing_parameters)
                 except Exception as exc:
                     error = True
-                    error_text = str(traceback.format_exc())
+                    error_text = str(traceback.format_exc()) + '. ' + str(exc)
 
                 job_line = db_connector.read_job({'job': sys.argv[2], 'job_id': job_id})
 

@@ -982,7 +982,7 @@ class RabotaRuParser(BaseParser):
             data = element.find('p', {'class': 'mb_10 lh_20'}).getText().replace('\t', '')\
                 .replace('\n', '').split(',')
         else:
-            data = ''
+            data = []
 
         return data
 

@@ -22,6 +22,7 @@ from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 class BaseParser:
     __metaclass__ = ABCMeta
     name = ''
+    url = ''
     enable = False
 
     def __init__(self, **kwargs):
@@ -38,7 +39,7 @@ class BaseParser:
         self.cv_fields = ['_id', 'address', 'gender', 'salary', 'valuta', 'age', 'position', 'about_me', 'category',
                           'specialization', 'employment', 'work_schedule', 'seniority', 'experience',
                           'skills', 'education_level', 'education', 'resume_link', 'site_id', 'site_url', 'vacancy_id',
-                          'profile_id', 'db']
+                          'profile_id', 'db', 'site']
         self.comp_fields = {'specialization': {'type': 'array'},
                             'seniority': {'type': 'dict', 'fields': ['years', 'months']},
                             'experience': {'type': 'array_dict', 'fields': ['start', 'end', 'timeinterval', 'company',
@@ -165,6 +166,8 @@ class BaseParser:
             field = self.get_profile_id(**kwargs)
         elif field_name == 'db':
             field = self.get_db(**kwargs)
+        elif field_name == 'site':
+            field = self.get_site(**kwargs)
         else:
             self.error = "Field name '{}' is not allowed".format(field_name)
 
@@ -270,6 +273,9 @@ class BaseParser:
     def get_db(self, **kwargs):
         return kwargs.get('db') or self.db
 
+    def get_site(self, **kwargs):
+        return self.__class__.name
+
     @staticmethod
     def months_numbers() -> dict:
         result = dict()
@@ -345,7 +351,8 @@ class BaseParser:
 class HeadHunterParser(BaseParser):
 
     name = 'HeadHunter'
-    enable = False
+    url = 'headhunter.ru'
+    enable = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -714,6 +721,7 @@ class HeadHunterParser(BaseParser):
 class RabotaRuParser(BaseParser):
 
     name = 'RabotaRu'
+    url = 'rabota.ru'
     enable = True
 
     def __init__(self, **kwargs):
@@ -1105,7 +1113,7 @@ class RabotaRuParser(BaseParser):
         for block in blocks:
             record, level = self.get_education_record(block)
             if level:
-                education_level = level
+                education_level = level.strip()
             if record:
                 data.append(record)
 
@@ -1330,6 +1338,17 @@ def refill_cv_collection(**kwargs):
     result = parsing_tool.parse(**kwargs)
 
     return result, parsing_tool.status, parsing_tool.error
+
+
+def get_site_table_settings_from_parsers(**kwargs):
+
+    site_list = []
+
+    for SubClass in BaseParser.__subclasses__():
+        if SubClass.enable:
+            site_list.append({'site': SubClass.name, 'url': SubClass.url})
+
+    return site_list, ''
 
 
 if __name__ == '__main__':

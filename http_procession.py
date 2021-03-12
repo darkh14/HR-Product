@@ -142,7 +142,12 @@ class HTTPProcessor:
                     self.error = error
                 elif self.parameters['request_type'] == 'get_filter_collection':
 
-                    collection, error = filter.get_filter_collection(**self.parameters)
+                    print(self.parameters)
+
+                    if self.parameters.get('collection_name') == 'filter_sites' and self.parameters.get('from_parsers'):
+                        collection, error = cv_parsing.get_site_table_settings_from_parsers(**self.parameters)
+                    else:
+                        collection, error = filter.get_filter_collection(**self.parameters)
 
                     self._add_parameter_to_output_('filter_collection', collection)
 

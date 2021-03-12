@@ -1,8 +1,6 @@
 {
 "request_type": "refill_cv_collection",
 "job": false,
-"limit": 10000,
-"sites": ["RabotaRu"],
 "vacancies": [
 {
 "vacancy_id": "2680778f-3709-11eb-99bd-fa163e8eff0e",
@@ -17,5 +15,8 @@
 "gender": "male"
 }
 }
+],
+"sites": [
+"RabotaRu"
 ]
 }

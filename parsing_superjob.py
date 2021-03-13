@@ -60,17 +60,14 @@ def get_age(form):
 def get_position(form):
     return form.find('h1', {'class': '_3mfro s1nFK _2JVkc _2VHxz _15msI'}).getText()
 
-def et_about_me(form):
+def get_about_me(form):
     return form.find('div', {'class': '_3mfro _2VtGa _1hP6a _2JVkc _2VHxz _3LJqf _15msI'}).getText().replace('\n','')
 
 def get_category(form):
     return ''
 
-def get_category(form):
-    return ''
-
-def et_category(form):
-    return ''
+def get_specialization(form):
+    return form.find('div', {'class': '_3mfro _2VtGa _1hP6a _2JVkc _2VHxz _3LJqf _15msI'}).getText().replace('\n','')
 
 def get_еmployment(form):
     return form.find('span', {'class': '_3mfro _3EQE7 _2JVkc _2VHxz'}).getText().replace('\n','')
@@ -83,7 +80,7 @@ def get_seniority(form):
 
 def get_experience(form):
     experience = []
-    experience_array = orm.find_all('div', {'class': '_9tygw'}) #НАЙТИ СПОСОБ ОТДЕЛИТЬ МЕСТА РАБОТЫ ОТ МЕСТ УЧЕБЫ
+    experience_array = form.find_all('div', {'class': '_9tygw'}) #НАЙТИ СПОСОБ ОТДЕЛИТЬ МЕСТА РАБОТЫ ОТ МЕСТ УЧЕБЫ
     for exp in experience_array:
 
         exp_dict = {}
@@ -160,6 +157,8 @@ def ParsingForms(shortlist):
             cv_fields_data['education'] = education
 
             _cv_fields.append(cv_fields_data)
+
+            print(cv_fields_data)
 
             with open('FormHTML_Soperjob.html', 'w', encoding='UTF-8') as file_form:
                 file_form.write(response_form.text)

@@ -3,7 +3,10 @@ import uuid
 import subprocess
 import traceback
 import sys
-from base_parser import BaseParser
+from parsing.base_parser import BaseParser
+# from .headhunter_parser import HeadHunterParser
+# from .rabotaru_parser import RabotaRuParser
+from parsing import *
 
 
 class ParsingTool:
@@ -80,7 +83,7 @@ class ParsingTool:
             else:
                 python_command = 'python'
 
-            p = subprocess.Popen([python_command, 'cv_parsing.py', '-job', 'refill_cv_collection', new_job_id])
+            p = subprocess.Popen([python_command, 'parsing/parsing_tool.py', '-job', 'refill_cv_collection', new_job_id])
 
             self.status = 'OK'
 

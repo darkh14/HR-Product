@@ -3,7 +3,7 @@ import datetime
 import pandas as pd
 from urllib.parse import unquote
 from time import sleep
-from base_parser import BaseParser
+from .base_parser import BaseParser
 
 
 class HeadHunterParser(BaseParser):

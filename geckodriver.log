@@ -2211,3 +2211,102 @@ JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?acti
 
 ###!!! [Parent][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
 
+1616015517164	geckodriver	INFO	Listening on 127.0.0.1:56053
+1616015520182	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "--headless" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofilewEAflF"
+*** You are running in headless mode.
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1616015525419	Marionette	INFO	Listening on port 56061
+1616015525970	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://mc.yandex.ru/metrika/tag.js, line 121: Failed to create WebGL context: WebGL creation failed: 
+* Can't use WebGL in headless mode (https://bugzil.la/1375585).
+JavaScript warning: https://mc.yandex.ru/metrika/tag.js, line 121: Failed to create WebGL context: WebGL creation failed: 
+* Can't use WebGL in headless mode (https://bugzil.la/1375585).
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+1616015528387	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1616015528394	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1616015829098	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1616015860154	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1616015893423	Marionette	INFO	Stopped listening on port 56061
+
+###!!! [Parent][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1616016700279	geckodriver	INFO	Listening on 127.0.0.1:58052
+1616016703297	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "--headless" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofile46rH67"
+*** You are running in headless mode.
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1616016705230	Marionette	INFO	Listening on port 58061
+1616016705326	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://mc.yandex.ru/metrika/tag.js, line 121: Failed to create WebGL context: WebGL creation failed: 
+* Can't use WebGL in headless mode (https://bugzil.la/1375585).
+JavaScript warning: https://mc.yandex.ru/metrika/tag.js, line 121: Failed to create WebGL context: WebGL creation failed: 
+* Can't use WebGL in headless mode (https://bugzil.la/1375585).
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=6510767, line 22: SyntaxError: '' string literal contains an unescaped line break
+1616016706917	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1616016706921	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1616017079093	Marionette	INFO	Stopped listening on port 58061
+
+###!!! [Parent][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1616017848318	geckodriver	INFO	Listening on 127.0.0.1:60876
+1616017851377	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "--headless" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofilebD7M3n"
+*** You are running in headless mode.
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1616017853165	Marionette	INFO	Listening on port 60884
+1616017853406	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://mc.yandex.ru/metrika/tag.js, line 121: Failed to create WebGL context: WebGL creation failed: 
+* Can't use WebGL in headless mode (https://bugzil.la/1375585).
+JavaScript warning: https://mc.yandex.ru/metrika/tag.js, line 121: Failed to create WebGL context: WebGL creation failed: 
+* Can't use WebGL in headless mode (https://bugzil.la/1375585).
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%A0%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%87%D0%B8%D0%BA+1%D1%81&id=16138642, line 22: SyntaxError: '' string literal contains an unescaped line break
+1616017855046	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1616017855050	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1616017867480	Marionette	INFO	Stopped listening on port 60884
+
+###!!! [Parent][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1616018783695	geckodriver	INFO	Listening on 127.0.0.1:61191
+1616018786721	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "--headless" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofilev32uvE"
+*** You are running in headless mode.
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1616018788529	Marionette	INFO	Listening on port 61199
+1616018788757	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://mc.yandex.ru/metrika/tag.js, line 121: Failed to create WebGL context: WebGL creation failed: 
+* Can't use WebGL in headless mode (https://bugzil.la/1375585).
+JavaScript warning: https://mc.yandex.ru/metrika/tag.js, line 121: Failed to create WebGL context: WebGL creation failed: 
+* Can't use WebGL in headless mode (https://bugzil.la/1375585).
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82+1%D1%81&id=6510767, line 22: SyntaxError: '' string literal contains an unescaped line break
+1616018801188	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1616018801203	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1616019104695	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://marionette/content/sync.js:231:19
+TimedPromise@chrome://marionette/content/sync.js:216:10
+interaction.flushEventLoop@chrome://marionette/content/interaction.js:433:10
+webdriverClickElement@chrome://marionette/content/interaction.js:179:31
+1616019192368	Marionette	INFO	Stopped listening on port 61199
+1616019929144	geckodriver	INFO	Listening on 127.0.0.1:64119
+1616019932201	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "--headless" "-foreground" "-no-remote" "-profile" "C:\\Users\\Mi\\AppData\\Local\\Temp\\rust_mozprofileF1NKi2"
+*** You are running in headless mode.
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1616019934115	Marionette	INFO	Listening on port 64127
+1616019934256	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://mc.yandex.ru/metrika/tag.js, line 121: Failed to create WebGL context: WebGL creation failed: 
+* Can't use WebGL in headless mode (https://bugzil.la/1375585).
+JavaScript warning: https://mc.yandex.ru/metrika/tag.js, line 121: Failed to create WebGL context: WebGL creation failed: 
+* Can't use WebGL in headless mode (https://bugzil.la/1375585).
+JavaScript warning: https://pix.rabota.ru/js/ValidatorUtils.js?74f23fc8bedc57aab7b95d758da42aac, line 698: unreachable code after return statement
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%A0%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%87%D0%B8%D0%BA+1%D1%81&id=16138642, line 22: SyntaxError: '' string literal contains an unescaped line break
+1616019935953	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+JavaScript error: https://www.rabota.ru/v3_searchResumeByParamsResults.html?action=search&area=v3_searchResumeByParamsResults&p=-2005&w=&qot%5B0%5D=3&qsa%5B0%5D%5B%5D=1&sf=&st=&cu=2&krl%5B%5D=3&af=&at=&sex=&eylo=&t2l=&nex=True&=&qk%5B0%5D=%D0%A0%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%87%D0%B8%D0%BA+1%D1%81&id=16138642, line 22: SyntaxError: '' string literal contains an unescaped line break
+1616019935955	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'loading'.
+1616019944766	Marionette	INFO	Stopped listening on port 64127

@@ -4,7 +4,7 @@ import pandas as pd
 from time import sleep
 from selenium import webdriver
 from webdriver_manager.firefox import GeckoDriverManager
-from base_parser import BaseParser
+from .base_parser import BaseParser
 
 
 class RabotaRuParser(BaseParser):

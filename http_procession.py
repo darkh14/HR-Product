@@ -1,5 +1,5 @@
 import machine_learning as ml
-import cv_parsing
+from parsing import parsing_tool
 import xml.etree.ElementTree as ET
 import json
 import mongo_connection
@@ -102,7 +102,7 @@ class HTTPProcessor:
                         self.status = 'OK'
                 elif self.parameters['request_type'] == 'refill_cv_collection':
 
-                    job_id, status, error = cv_parsing.refill_cv_collection(**self.parameters)
+                    job_id, status, error = parsing_tool.refill_cv_collection(**self.parameters)
 
                     self.status = status
                     self.error = error

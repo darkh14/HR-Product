@@ -4,6 +4,7 @@ from mongo_connection import MongoDBConnector
 import difflib
 import re
 from filter import Filter
+import time
 
 
 class MLProcessor:
@@ -14,7 +15,8 @@ class MLProcessor:
 
         self._cv_fields = ['_id', 'address', 'gender', 'salary', 'valuta', 'age', 'position', 'about_me', 'category',
                            'specialization', 'employment', 'work_schedule', 'seniority', 'experience',
-                           'skills', 'education_level', 'education', 'resume_link', 'site_id', 'site_url', 'threshold']
+                           'skills', 'education_level', 'education', 'resume_link', 'site_id', 'site_url', 'threshold',
+                           'site']
         self._comp_fields = {'specialization': {'type': 'array'},
                              'seniority': {'type': 'dict', 'fields': ['years', 'months']},
                              'experience': {'type': 'array_dict',
@@ -182,6 +184,8 @@ class MLProcessor:
 
         self._cv = self.db_connector.get_cv()
 
+        start = time.time()
+
         if self._cv:
 
             count = 1
@@ -191,7 +195,11 @@ class MLProcessor:
             cursor = self._cv.find(mongo_filter)
             if self.limit:
                 cursor = cursor.limit(self.limit)
+
             for cv_line in cursor:
+                if not self._check_text(cv_line):
+                    continue
+
                 cv_line.pop('_id')
                 cv_line['threshold'] = self._get_threshold(cv_line)
                 # print(str(count) + ' -- ' + cv_line['position'] + ' -- ' + str(cv_line['threshold']))
@@ -206,13 +214,44 @@ class MLProcessor:
             print(str(count) + ' -- ' + cv_line['position'] + ' -- ' + str(cv_line['threshold']))
             count += 1
 
+        end = time.time()
+        print('Время выполнения: ' + str(end - start))
+
         return self._fitting_cv
+
+    def _check_text(self, cv_line):
+
+        result = False
+        fields = self.filter_processor.get_filter_value('text', 'settings', 'cv', True)
+        rr = 0
+        texts = self._filter['text'].get('value')
+
+        words = []
+        for text in texts:
+            text_list = text.strip().split(' ')
+            for text_word in text_list:
+                if text_word not in words:
+                    words.append(text_word.lower())
+
+        for field in fields:
+            for word in words:
+                cv_text = cv_line[field].lower()
+                result = cv_text.find(word) != -1
+
+                if result:
+                    break
+            if result:
+                break
+
+        return result
 
     def create_mongo_filter(self):
         mongo_filter = {}
         filter_names = self._filter_names
         filter_list = []
         for filter_name in filter_names:
+            if filter_name == 'text':
+                continue
             filter_element = self._get_field_mongo_filter(filter_name)
             if filter_element:
                 filter_list.append(filter_element)
@@ -277,13 +316,18 @@ class MLProcessor:
     def _get_threshold(self, cv_line):
         threshold = 0
         for filter_name in self._filter_names:
+
             field_threshold = self._get_field_threshold(filter_name, cv_line)
             if field_threshold != -1:
                 threshold += field_threshold
+
+        self.first = False
         return threshold
 
     def _get_field_threshold(self, filter_name, cv_line):
+
         threshold = 0
+
         if filter_name == 'text':
 
             if self._filter.get('text'):
@@ -293,9 +337,13 @@ class MLProcessor:
                 count = 1
                 for field in fields:
                     c_threshold = 0
+                    c_text = ''
                     for text in self._filter['text'].get('value'):
-                        c_threshold += self._similarity(cv_line[field], text)
-                    c_threshold /= len(self._filter['text'])
+                        c_text += ' ' + text
+
+                    c_threshold += self._similarity(cv_line[field], c_text)
+
+                    # c_threshold /= len(self._filter['text'])
                     if count == 1:
                         c_threshold *= 0.8
                     elif count == 2:
@@ -323,14 +371,28 @@ class MLProcessor:
                                              <= value[0][filter_name + '_to']) else 0
                     else:
                         threshold = 0.01 if value[0] == cv_line[field_name] else 0
+
         return threshold
 
     @staticmethod
     def _similarity(s1, s2):
         normalized1 = s1.lower()
         normalized2 = s2.lower()
-        matcher = difflib.SequenceMatcher(None, normalized1, normalized2)
-        return matcher.ratio()
+
+        words1 = normalized1.strip().split(' ')
+        words2 = normalized2.strip().split(' ')
+
+        count = 0
+
+        used_words = []
+        for word1 in words1:
+            for word2 in words2:
+                if word1 == word2 and word1 not in used_words:
+                    used_words.append(word1)
+                    count += 1
+        # matcher = difflib.SequenceMatcher(None, normalized1, normalized2)
+        return count/max(len(words1), len(words2)) if words1 and words2 else 0
+        # return matcher.ratio()
 
     @staticmethod
     def _get_id_from_link(link):

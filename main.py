@@ -11,10 +11,9 @@
 import http_procession
 import json
 import warnings
+# import cProfile
 warnings.simplefilter(action='ignore', category=FutureWarning)
 # import tensorflow as tf
-import os
-import mongo_connection
 
 
 def t_application(request_type, start_response):
@@ -70,6 +69,9 @@ if __name__ == '__main__':
     # request_types.append('delete_jobs')
     # request_types.append('set_filter_collection')
 
+    # pr = cProfile.Profile()
+    # pr.enable()
+
     for request_type in request_types:
         output = t_application(request_type, t_start_response)
 
@@ -91,6 +93,9 @@ if __name__ == '__main__':
             print(output_dict)
         elif request_type == 'set_filter_collection':
             print(output_dict)
+
+    # pr.disable()  # after your program
+    # pr.print_stats(sort="calls")
 
     # connector = mongo_connection.MongoDBConnector()
     # cv = connector.get_cv()

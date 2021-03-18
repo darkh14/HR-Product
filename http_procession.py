@@ -1,5 +1,5 @@
 import machine_learning as ml
-import cv_parsing
+from parsing import parsing_tool
 import xml.etree.ElementTree as ET
 import json
 import mongo_connection
@@ -102,7 +102,7 @@ class HTTPProcessor:
                         self.status = 'OK'
                 elif self.parameters['request_type'] == 'refill_cv_collection':
 
-                    job_id, status, error = cv_parsing.refill_cv_collection(**self.parameters)
+                    job_id, status, error = parsing_tool.refill_cv_collection(**self.parameters)
 
                     self.status = status
                     self.error = error
@@ -142,7 +142,12 @@ class HTTPProcessor:
                     self.error = error
                 elif self.parameters['request_type'] == 'get_filter_collection':
 
-                    collection, error = filter.get_filter_collection(**self.parameters)
+                    print(self.parameters)
+
+                    if self.parameters.get('collection_name') == 'filter_sites' and self.parameters.get('from_parsers'):
+                        collection, error = cv_parsing.get_site_table_settings_from_parsers(**self.parameters)
+                    else:
+                        collection, error = filter.get_filter_collection(**self.parameters)
 
                     self._add_parameter_to_output_('filter_collection', collection)
 

@@ -31,7 +31,6 @@ class HeadHunterParser(BaseParser):
         self.current_salary_data = None
         self.current_link = ''
 
-
     def _set_url(self, **kwargs):
 
         self.base_url = kwargs.get('base_url') or 'https://hh.ru'

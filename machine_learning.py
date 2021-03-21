@@ -190,24 +190,28 @@ class MLProcessor:
 
             count = 1
 
-            mongo_filter = self.create_mongo_filter()
+            if variant == 'fitting':
+                mongo_filter = self.create_mongo_filter()
+            else:
+                mongo_filter = {}
 
             cursor = self._cv.find(mongo_filter)
             if self.limit:
                 cursor = cursor.limit(self.limit)
 
             for cv_line in cursor:
-                if not self._check_text(cv_line):
+                if variant == 'fitting' and not self._check_text(cv_line):
                     continue
 
                 cv_line.pop('_id')
-                cv_line['threshold'] = self._get_threshold(cv_line)
+                cv_line['threshold'] = self._get_threshold(cv_line) if variant == 'fitting' else 0
                 # print(str(count) + ' -- ' + cv_line['position'] + ' -- ' + str(cv_line['threshold']))
                 self._fitting_cv.append(cv_line)
 
                 count += 1
 
-        self._fitting_cv.sort(key=lambda x: x['threshold'], reverse=True)
+        if variant == 'fitting':
+            self._fitting_cv.sort(key=lambda x: x['threshold'], reverse=True)
 
         count = 1
         for cv_line in self._fitting_cv:

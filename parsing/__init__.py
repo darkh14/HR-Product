@@ -1,1 +1,1 @@
-__all__ = ['base_parser', 'headhunter_parser', 'rabotaru_parser']
+__all__ = ['base_parser', 'headhunter_parser', 'rabotaru_parser', 'superjob_parser']

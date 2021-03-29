@@ -5,7 +5,7 @@ from .base_parser import BaseParser
 class SuperJobParser(BaseParser):
 
     name = 'SuperJob'
-    url = 'superjob.ru/resume/programmist-1s.html?sbmit=1&t%5B0%5D=4'
+    url = 'https://superjob.ru/resume/programmist-1s.html?sbmit=1&t%5B0%5D=4'
     enable = True
 
     def __init__(self, **kwargs):
@@ -23,9 +23,10 @@ class SuperJobParser(BaseParser):
 
     def _parse_with_parameters(self, url='', request_params={}, count=0, limit=0):
         params = request_params.copy() or []
-        first_page = self._get_response(url, headers=self.headers, params=params)
+        response = self._get_response(url, headers=self.headers, params=params)
 
-        if first_page != None:
+        if response:
+            first_page = bs(response.text, 'lxml')
             eterations = int(first_page.find_all('span', {'class': '_1BOkc'})[36].getText())
             counter = 1
             eterations = 5
@@ -35,8 +36,10 @@ class SuperJobParser(BaseParser):
                     shortlist = parsing_page.find_all('a', {'class': '_3dPok'})
                 else:
                     url_page = url + '&page=' + str(counter)
-                    next_page = self._get_response(url_page, headers=self.headers, params=params)
-                    shortlist = next_page.find_all('a', {'class': '_3dPok'})
+                    next_page_response = self._get_response(url_page, headers=self.headers, params=params)
+                    if next_page_response:
+                        next_page = bs(next_page_response.text, 'lxml')
+                        shortlist = next_page.find_all('a', {'class': '_3dPok'})
 
                 if len(shortlist) > 0:
                     for form in shortlist:
@@ -47,6 +50,13 @@ class SuperJobParser(BaseParser):
                             print(url_form)
                             cv_data = self.get_cv_data(html_form, cv_link=url_form)
                             self.write_cv_data(cv_data)
+
+                counter += 1
+
+    def _get_response(self, url, headers, params):
+        response = requests.get(url)
+        response.headers = headers
+        return response
 
     def get_monthNumber(self, month):
         MonthsList = {}
@@ -83,15 +93,27 @@ class SuperJobParser(BaseParser):
             except ValueError:
                 return False
 
-    def Getresponse(self, url, headers):
-        response = requests.get(url)
-        response.headers = HEADERS
-        return response
+    def _set_url(self, **kwargs):
+        self.base_url = kwargs.get('base_url') or 'https://superjob.ru'
+
+
+    def _set_url_params(self, parsing_filter=None):
+
+        self.params = {}
+
+        if not parsing_filter:
+            parsing_filter = self.parsing_filter
+
+        self.params.update(self._url_params_to_add)
+
+        for ad_par, ad_val in parsing_filter.items():
+            parameter_name = self.filter_processor.get_filter_value(ad_par, 'settings', self.name)
+            parameter_value = self.filter_processor.get_filter_value(ad_val, ad_par, self.name)
+            self.params[parameter_name] = parameter_value
+
 
     def get_site_id(self, element, **kwargs):
-        lis_sort = element.split('-')
-        list_len = len(lis_sort)
-        _id = lis_sort[list_len - 1].replace('.html', '')
+        _id = element.find('span', {'class': '_3mfro _9fXTd _2JVkc _2VHxz'}).getText().replace('№ ',' ')
         return _id
 
     def get_address(self, element, **kwargs):
@@ -161,21 +183,35 @@ class SuperJobParser(BaseParser):
 
     def get_specialization(self, element, **kwargs):
         if element.find('div', {'class': '_3mfro _2VtGa _1hP6a _2JVkc _2VHxz _3LJqf _15msI'}):
-            return [element.find('div', {'class': '_3mfro _2VtGa _1hP6a _2JVkc _2VHxz _3LJqf _15msI'}).getText().replace('\n','').replace(' ',' ').strip().replace("\\",'')]
+            return [element.find('div', {'class': '_3mfro _2VtGa _1hP6a _2JVkc _2VHxz _3LJqf _15msI'}).getText().replace('\n','').replace(' ',' ').strip().replace("\\", '')]
         else:
             return ''
 
     def get_employment(self, element, **kwargs):
-        return element.find('span', {'class': '_3mfro _3EQE7 _2JVkc _2VHxz'}).getText().replace('\n','').replace(' ',' ')
+        return element.find('span', {'class': '_3mfro _3EQE7 _2JVkc _2VHxz'}).getText().replace('\n', '').replace(' ',' ')
 
     def get_work_schedule(self, element, **kwargs):
         return '' # ВЫЯСНИТЬ КАК ОТДЕЛЯТЬ ОТ EMPLOYMENT
 
     def get_seniority(self, element, **kwargs):
         if element.find('span', {'class': '_3mfro _9fXTd _2JVkc'}):
-            return element.find('span', {'class': '_3mfro _9fXTd _2JVkc'}).getText().replace('\n','').replace(' ',' ')
-        else:
-            return ''
+            seniority_str = element.find('span', {'class': '_3mfro _9fXTd _2JVkc'}).getText().replace('\n', '').replace(' ', ' ')
+
+            seniority_list = seniority_str.split('и')
+            timeinterval = {}
+
+            if len(seniority_list) == 0:
+                timeinterval['years'] = ''
+                timeinterval['months'] = ''
+            elif len(seniority_list) == 1:
+                if seniority_list[0].find('мес') < 0:
+                    timeinterval['years'] = seniority_list[0][:2].replace(' ', '')
+                    timeinterval['months'] = ''
+                else:
+                    timeinterval['years'] = ''
+                    timeinterval['months'] = seniority_list[0][:2].replace(' ', '')
+
+        return timeinterval
 
     def get_experience(self, element, **kwargs):
         experience = []

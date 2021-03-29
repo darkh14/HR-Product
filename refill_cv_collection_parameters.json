@@ -1,6 +1,6 @@
 {
 "request_type": "refill_cv_collection",
-"job": true,
+"job": false,
 "vacancies": [
 {
 "vacancy_id": "2680778f-3709-11eb-99bd-fa163e8eff0e",
@@ -17,6 +17,6 @@
 }
 ],
 "sites": [
-"RabotaRu"
+"SuperJob"
 ]
 }

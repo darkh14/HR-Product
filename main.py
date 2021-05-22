@@ -58,11 +58,9 @@ if __name__ == '__main__':
     # print(tf.__version__)
     # print(tf.config.list_physical_devices('GPU'))
 
-
-
-    request_types = list()
+    # request_types = list()
     # request_types.append('get_fitting_cvs')
-    request_types.append('get_all_cvs')
+    # request_types.append('get_all_cvs')
     # request_types.append('set_vacancies')
     # request_types.append('set_profiles')
     # request_types.append('set_cv_vacancy_labels')
@@ -70,42 +68,71 @@ if __name__ == '__main__':
     # request_types.append('check_job_status')
     # request_types.append('delete_jobs')
     # request_types.append('set_filter_collection')
+    # request_types.append('transform_cv')
+    # request_types.append('fit_cv')
 
-    # pr = cProfile.Profile()
-    # pr.enable()
+    request_dict = {}
+    request_dict[1] = 'get_fitting_cvs'
+    request_dict[2] = 'get_all_cvs'
+    request_dict[3] = 'set_vacancies'
+    request_dict[4] = 'set_profiles'
+    request_dict[5] = 'set_cv_vacancy_labels'
+    request_dict[6] = 'refill_cv_collection'
+    request_dict[7] = 'check_job_status'
+    request_dict[8] = 'delete_jobs'
+    request_dict[9] = 'set_filter_collection'
+    request_dict[10] = 'transform_cv'
+    request_dict[11] = 'fit_cv'
 
-    for request_type in request_types:
-        output = t_application(request_type, t_start_response)
+    print('Input number to choose action:')
+    for key, value in request_dict.items():
+        print(str(key) + ' - "' + value + '"')
 
-        output_str = output[0].decode()
+    print('')
+    request_number = 0
+    request_number = int(input('>> '))
 
-        output_dict = json.loads(output_str)
+    request_type = request_dict.get(request_number)
 
-        if request_type == 'get_fitting_cvs':
-            print(len(output_dict['fitting_cvs']))
-            if output_dict['fitting_cvs']:
-                print(output_dict['fitting_cvs'][0])
-        elif request_type == 'get_all_cvs':
-            print(output_dict['all_cvs'][0])
-        elif request_type == 'refill_cv_collection':
-            print(output_dict)
-        elif request_type == 'set_vacancies':
-            print(output_dict)
-        elif request_type == 'check_job_status':
-            print(output_dict)
-        elif request_type == 'set_filter_collection':
-            print(output_dict)
+    assert request_type, 'request type not found'
 
-    # pr.disable()  # after your program
-    # pr.print_stats(sort="calls")
+    output = t_application(request_type, t_start_response)
 
-    # connector = mongo_connection.MongoDBConnector()
-    # cv = connector.get_cv()
+    output_str = output[0].decode()
+
+    output_dict = json.loads(output_str)
+
+    if request_type == 'get_fitting_cvs':
+        print(len(output_dict['fitting_cvs']))
+        if output_dict['fitting_cvs']:
+            print(output_dict['fitting_cvs'][0])
+    elif request_type == 'get_all_cvs':
+        print(output_dict['all_cvs'][0])
+    else:
+        print(output_dict)
+
+
+
+
+    # for request_type in request_types:
+    #     output = t_application(request_type, t_start_response)
     #
-    # edu = []
-    # for cv_line in cv.find():
-    #     if cv_line['address'] not in edu:
-    #         edu.append(cv_line['address'])
+    #     output_str = output[0].decode()
     #
-    # print(edu)
+    #     output_dict = json.loads(output_str)
+    #
+    #     if request_type == 'get_fitting_cvs':
+    #         print(len(output_dict['fitting_cvs']))
+    #         if output_dict['fitting_cvs']:
+    #             print(output_dict['fitting_cvs'][0])
+    #     elif request_type == 'get_all_cvs':
+    #         print(output_dict['all_cvs'][0])
+    #     elif request_type == 'refill_cv_collection':
+    #         print(output_dict)
+    #     elif request_type == 'set_vacancies':
+    #         print(output_dict)
+    #     elif request_type == 'check_job_status':
+    #         print(output_dict)
+    #     elif request_type == 'set_filter_collection':
+    #         print(output_dict)
 

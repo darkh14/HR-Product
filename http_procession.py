@@ -4,6 +4,7 @@ import xml.etree.ElementTree as ET
 import json
 import mongo_connection
 import filter
+import data_processing
 
 
 class HTTPProcessor:
@@ -145,7 +146,7 @@ class HTTPProcessor:
                     print(self.parameters)
 
                     if self.parameters.get('collection_name') == 'filter_sites' and self.parameters.get('from_parsers'):
-                        collection, error = cv_parsing.get_site_table_settings_from_parsers(**self.parameters)
+                        collection, error = parsing_tool.get_site_table_settings_from_parsers(**self.parameters)
                     else:
                         collection, error = filter.get_filter_collection(**self.parameters)
 
@@ -167,6 +168,20 @@ class HTTPProcessor:
 
                     self.status = 'OK' if not error else 'error'
                     self.error = error
+                elif self.parameters['request_type'] == 'transform_cv':
+
+                    result, error = data_processing.transform(**self.parameters)
+
+                    self.status = 'OK' if not error else 'error'
+                    self.error = error
+
+                elif self.parameters['request_type'] == 'fit_cv':
+
+                    result, error = data_processing.fit(**self.parameters)
+
+                    self.status = 'OK' if not error else 'error'
+                    self.error = error
+
                 else:
                     self.status = 'error'
                     self.error = 'Unknown value of request type ''{}'''.format(self.parameters['request_type'])
